@@ -1,0 +1,16 @@
+node_modules/
+dist/
+build/
+
+# environment & secrets
+.env
+.env.local
+*serviceAccountKey*.json
+
+# uploads & temp
+backend/src/uploads/*
+!backend/src/uploads/.gitkeep
+
+# logs & OS
+*.log
+.DS_Store
