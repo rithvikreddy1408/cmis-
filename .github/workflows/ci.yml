@@ -1,0 +1,117 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  backend:
+    name: Backend — typecheck, build, integration tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci
+      - name: Typecheck
+        working-directory: backend
+        run: npx tsc --noEmit
+      - name: Build
+        working-directory: backend
+        run: npm run build
+      # Runs against the Firebase emulator suite (firebase-tools via npx) —
+      # no real project or secrets needed, same as running it locally.
+      - name: Integration tests
+        working-directory: backend
+        run: npm run test:integration
+
+  frontend:
+    name: Frontend — typecheck, lint, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+      - name: Lint
+        working-directory: frontend
+        run: npm run lint
+      # tsc -b covers the app, node config, e2e specs, and service worker
+      # project references in one pass — see frontend/tsconfig.json.
+      - name: Typecheck + build
+        working-directory: frontend
+        run: npm run build
+
+  # Runs the real E2E happy path against a real Firebase project, so it
+  # needs repo secrets configured first: FIREBASE_SERVICE_ACCOUNT_JSON (the
+  # backend's service account key, full JSON as one secret),
+  # E2E_ADMIN_EMAIL, E2E_ADMIN_PASSWORD (a seeded super admin — see
+  # docs/RUNBOOK.md). Skips itself cleanly if they're not set yet rather
+  # than failing the whole pipeline.
+  e2e:
+    name: E2E happy path (needs repo secrets — see docs/RUNBOOK.md)
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check required secrets are configured
+        id: check
+        run: |
+          if [ -n "${{ secrets.E2E_ADMIN_EMAIL }}" ] && [ -n "${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Skipping E2E — set E2E_ADMIN_EMAIL, E2E_ADMIN_PASSWORD, and FIREBASE_SERVICE_ACCOUNT_JSON as repo secrets to enable it (see docs/RUNBOOK.md)."
+          fi
+      - uses: actions/setup-node@v4
+        if: steps.check.outputs.ready == 'true'
+        with:
+          node-version: 22
+      - name: Install backend dependencies
+        if: steps.check.outputs.ready == 'true'
+        working-directory: backend
+        run: npm ci
+      - name: Install frontend dependencies
+        if: steps.check.outputs.ready == 'true'
+        working-directory: frontend
+        run: npm ci
+      - name: Install Playwright browsers
+        if: steps.check.outputs.ready == 'true'
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+      - name: Write service account credentials
+        if: steps.check.outputs.ready == 'true'
+        run: echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}' > backend/serviceAccountKey.json
+      - name: Start backend
+        if: steps.check.outputs.ready == 'true'
+        working-directory: backend
+        run: npm run build && nohup node dist/server.js > /tmp/backend.log 2>&1 &
+        env:
+          PORT: 4100
+          GOOGLE_APPLICATION_CREDENTIALS: ./serviceAccountKey.json
+          CORS_ORIGIN: http://localhost:5173
+      - name: Start frontend
+        if: steps.check.outputs.ready == 'true'
+        working-directory: frontend
+        run: nohup npm run preview -- --port 5173 > /tmp/frontend.log 2>&1 &
+      - name: Wait for servers
+        if: steps.check.outputs.ready == 'true'
+        run: npx wait-on http://localhost:4100/api/v1/health http://localhost:5173
+      - name: Run E2E suite
+        if: steps.check.outputs.ready == 'true'
+        working-directory: frontend
+        run: npm run test:e2e
+        env:
+          E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL }}
+          E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}

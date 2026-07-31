@@ -14,3 +14,10 @@ backend/src/uploads/*
 # logs & OS
 *.log
 .DS_Store
+
+# test artifacts
+frontend/test-results/
+frontend/playwright-report/
+
+# Firestore backups — real student/driver PII, never belongs in the repo
+backend/backups/

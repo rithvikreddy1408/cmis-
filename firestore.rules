@@ -1,0 +1,48 @@
+rules_version = '2';
+
+// Deny-by-default. All writes happen exclusively through the backend's
+// Firebase Admin SDK, which bypasses these rules entirely — so every
+// "write: false" here is the real, enforced policy for the client SDK path.
+// Reads are scoped to admin roles except a user's own profile doc.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function role() {
+      return isSignedIn() ? request.auth.token.role : null;
+    }
+
+    function isAdmin() {
+      return role() == 'super_admin' || role() == 'transport_admin';
+    }
+
+    match /users/{uid} {
+      allow read: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+      allow write: if false;
+    }
+
+    match /students/{id}      { allow read: if isAdmin(); allow write: if false; }
+    match /drivers/{id}       { allow read: if isAdmin(); allow write: if false; }
+    match /buses/{id}         { allow read: if isAdmin(); allow write: if false; }
+    match /routes/{id}        { allow read: if isAdmin(); allow write: if false; }
+    match /attendance/{id}    { allow read: if isAdmin(); allow write: if false; }
+    match /busPasses/{id}     { allow read: if isAdmin(); allow write: if false; }
+    match /trips/{id}         { allow read: if isAdmin(); allow write: if false; }
+    match /gps/{id} {
+      allow read: if isAdmin();
+      allow write: if false;
+      match /history/{historyId} { allow read: if isAdmin(); allow write: if false; }
+    }
+    match /rfidCards/{id}     { allow read: if isAdmin(); allow write: if false; }
+    match /devices/{id}       { allow read: if isAdmin(); allow write: if false; }
+    match /notifications/{id} { allow read: if isAdmin(); allow write: if false; }
+    match /tapRejections/{id} { allow read: if isAdmin(); allow write: if false; }
+    match /settings/{id}      { allow read: if isAdmin(); allow write: if false; }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

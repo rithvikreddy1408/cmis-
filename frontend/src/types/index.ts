@@ -26,6 +26,7 @@ export interface Driver {
   routeAssigned: string | null
   licenseNumber: string
   status: 'active' | 'inactive' | 'on_trip'
+  createdAt: string
 }
 
 export interface Bus {
@@ -37,6 +38,7 @@ export interface Bus {
   currentOccupancy: number
   status: 'idle' | 'on_trip' | 'offline' | 'maintenance'
   lastUpdated: string
+  createdAt: string
 }
 
 export interface RouteStop {
@@ -46,15 +48,23 @@ export interface RouteStop {
   order: number
 }
 
+export interface LatLng {
+  lat: number
+  lng: number
+}
+
 export interface BusRoute {
   routeId: string
   routeName: string
   startPoint: string
   destination: string
+  startLocation: LatLng | null
+  destinationLocation: LatLng | null
   stops: RouteStop[]
-  distance: number
-  expectedTime: number
+  distance: number | null
+  expectedTime: number | null
   polyline: string | null
+  createdAt: string
 }
 
 export interface AttendanceRecord {
@@ -80,7 +90,7 @@ export interface Trip {
   tripId: string
   busId: string
   driverId: string
-  routeId: string
+  routeId: string | null
   startTime: string
   endTime: string | null
   status: 'active' | 'completed'
@@ -102,9 +112,9 @@ export interface AppNotification {
   notificationId: string
   title: string
   message: string
-  recipientType: 'all' | 'role' | 'uid'
+  recipientType: 'all' | 'admin' | 'role' | 'uid'
   recipientId: string | null
   type: string
-  read: boolean
+  readBy: string[]
   createdAt: string
 }

@@ -11,4 +11,7 @@ export const COLLECTIONS = {
   rfidCards: 'rfidCards',
   devices: 'devices',
   notifications: 'notifications',
+  tapRejections: 'tapRejections',
 } as const
+
+export const GPS_HISTORY_SUBCOLLECTION = 'history'
