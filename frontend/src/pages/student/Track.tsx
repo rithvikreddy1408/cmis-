@@ -3,6 +3,7 @@ import { Loader2, TriangleAlert, Gauge, Navigation2 } from 'lucide-react'
 import FleetMap, { type FleetStop } from '../../components/maps/FleetMap'
 import { SERVICE_AREA_CENTER } from '../../utils/mapDefaults'
 import { navigateToPointUrl } from '../../utils/navigation'
+import { parkedPosition } from '../../utils/parkedPosition'
 import { studentsApi } from '../../services/students.api'
 import { busesApi } from '../../services/buses.api'
 import { routesApi } from '../../services/routes.api'
@@ -80,6 +81,38 @@ export default function Track() {
     ? { lat: gps.latitude, lng: gps.longitude }
     : (bus?.routeId && route?.startLocation) || SERVICE_AREA_CENTER
 
+  const parked = gps ? null : parkedPosition(route)
+  const mapBuses =
+    gps && bus
+      ? [
+          {
+            busId: bus.busId,
+            busNumber: bus.busNumber,
+            lat: gps.latitude,
+            lng: gps.longitude,
+            status: bus.status,
+            occupancy: bus.currentOccupancy,
+            capacity: bus.capacity,
+            updatedAt: gps.updatedAt,
+            isLive: true,
+          },
+        ]
+      : parked && bus
+        ? [
+            {
+              busId: bus.busId,
+              busNumber: bus.busNumber,
+              lat: parked.point.lat,
+              lng: parked.point.lng,
+              status: bus.status,
+              isLive: false,
+              parkedNote: `Usually parked at ${parked.label} ${
+                parked.place === 'destination' ? 'between 9am and 4pm' : 'outside 9am–4pm'
+              }. Live tracking starts when the driver begins the trip.`,
+            },
+          ]
+        : []
+
   const mapStops: FleetStop[] = [
     ...(route?.startLocation
       ? [{ name: route.startPoint, ...route.startLocation, kind: 'start' as const }]
@@ -108,7 +141,16 @@ export default function Track() {
         ) : gpsError || !gps ? (
           <div className="flex items-start gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">
             <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" />
-            No live location yet. The driver hasn't started a trip.
+            <span>
+              No live location — the driver hasn't started the trip.
+              {parked && (
+                <>
+                  {' '}
+                  The map shows where it is <b>usually</b> parked ({parked.label}), not where it is
+                  now.
+                </>
+              )}
+            </span>
           </div>
         ) : (
           <>
@@ -176,22 +218,7 @@ export default function Track() {
         <FleetMap
           center={center}
           zoom={14}
-          buses={
-            gps && bus
-              ? [
-                  {
-                    busId: bus.busId,
-                    busNumber: bus.busNumber,
-                    lat: gps.latitude,
-                    lng: gps.longitude,
-                    status: bus.status,
-                    occupancy: bus.currentOccupancy,
-                    capacity: bus.capacity,
-                    updatedAt: gps.updatedAt,
-                  },
-                ]
-              : []
-          }
+          buses={mapBuses}
           stops={mapStops}
           encodedPolyline={route?.polyline}
           emptyMessage="Your bus isn't sharing a live location yet — it appears here as soon as your driver starts the trip."

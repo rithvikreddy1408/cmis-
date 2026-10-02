@@ -14,6 +14,16 @@ export interface FleetBus {
   occupancy?: number
   capacity?: number
   updatedAt?: string
+  /**
+   * False when the position is a scheduled parking spot rather than a GPS
+   * fix. Drawn deliberately differently — a grey, dashed, muted pin — because
+   * a student who mistakes "where this bus usually is" for "where this bus is"
+   * is being misled precisely when they are deciding whether to leave for the
+   * stop.
+   */
+  isLive?: boolean
+  /** Shown in the popup of a non-live marker to explain what it represents. */
+  parkedNote?: string
 }
 
 export interface FleetStop {
@@ -47,10 +57,18 @@ function esc(value: string): string {
 
 function busIcon(bus: FleetBus) {
   // A div icon rather than an image marker: the emoji is the marker, sitting
-  // on a white pill so it stays legible over any tile underneath.
+  // on a white pill so it stays legible over any tile underneath. A parked
+  // marker gets a visibly different pin so the two are never confused at a
+  // glance — muted, dashed, and labelled rather than just a dimmer bus.
+  const parked = bus.isLive === false
   return L.divIcon({
     className: 'cmis-bus-marker',
-    html: `<div class="cmis-bus-pin"><span class="cmis-bus-emoji">🚌</span><span class="cmis-bus-label">${esc(bus.busNumber)}</span></div>`,
+    html:
+      `<div class="cmis-bus-pin${parked ? ' cmis-bus-pin--parked' : ''}">` +
+      `<span class="cmis-bus-emoji">🚌</span>` +
+      `<span class="cmis-bus-label">${esc(bus.busNumber)}</span>` +
+      (parked ? '<span class="cmis-bus-offline">offline</span>' : '') +
+      `</div>`,
     iconSize: [0, 0],
     iconAnchor: [0, 0],
   })
@@ -73,6 +91,13 @@ function stopIcon(stop: FleetStop) {
 }
 
 function popupHtml(bus: FleetBus) {
+  if (bus.isLive === false) {
+    return (
+      `<div class="cmis-pop"><div class="cmis-pop-title">🚌 ${esc(bus.busNumber)}</div>` +
+      `<div class="cmis-pop-warn">Not tracking right now</div>` +
+      `<div class="cmis-pop-row">${esc(bus.parkedNote ?? 'Shown at its usual parking place, not a live position.')}</div></div>`
+    )
+  }
   const occupancy =
     bus.occupancy != null && bus.capacity != null
       ? `<div class="cmis-pop-row">Occupancy <b>${bus.occupancy}/${bus.capacity}</b></div>`
@@ -171,7 +196,9 @@ export default function FleetMap({
   // The route line, which does follow the bus: it is split at the bus's
   // position, so it redraws as the bus moves. Keyed on the coordinates rather
   // than the buses array so an unchanged position does not cause a redraw.
-  const liveBus = buses.length === 1 ? buses[0] : null
+  // A parked bus is not travelling, so it must not split the route into
+  // "covered" and "ahead" — that would imply progress that has not happened.
+  const liveBus = buses.length === 1 && buses[0].isLive !== false ? buses[0] : null
   const busKey = liveBus ? `${liveBus.lat},${liveBus.lng}` : ''
 
   useEffect(() => {
