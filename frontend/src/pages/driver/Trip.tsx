@@ -7,26 +7,8 @@ import { routesApi } from '../../services/routes.api'
 import { tripsApi } from '../../services/trips.api'
 import { useBusChannel } from '../../hooks/useBusChannel'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
+import { navigateRouteUrl } from '../../utils/navigation'
 import Banner from '../../components/ui/Banner'
-
-function buildNavigationUrl(
-  destination: string,
-  destinationLocation: { lat: number; lng: number } | null,
-  stops: { lat: number; lng: number; order: number }[],
-) {
-  const url = new URL('https://www.google.com/maps/dir/')
-  url.searchParams.set('api', '1')
-  url.searchParams.set(
-    'destination',
-    destinationLocation ? `${destinationLocation.lat},${destinationLocation.lng}` : destination,
-  )
-  if (stops.length > 0) {
-    const sorted = [...stops].sort((a, b) => a.order - b.order)
-    url.searchParams.set('waypoints', sorted.map((s) => `${s.lat},${s.lng}`).join('|'))
-  }
-  url.searchParams.set('travelmode', 'driving')
-  return url.toString()
-}
 
 export default function DriverTrip() {
   const [confirmingEmergency, setConfirmingEmergency] = useState(false)
@@ -110,7 +92,7 @@ export default function DriverTrip() {
               </p>
             </div>
             <a
-              href={buildNavigationUrl(route.destination, route.destinationLocation, route.stops)}
+              href={navigateRouteUrl(route.destination, route.destinationLocation, route.stops)}
               target="_blank"
               rel="noreferrer"
               className="flex items-center gap-1.5 rounded-lg btn-primary px-3 py-2 text-sm font-medium text-white"

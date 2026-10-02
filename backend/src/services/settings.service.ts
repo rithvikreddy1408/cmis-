@@ -5,11 +5,18 @@ const SETTINGS_DOC_PATH = 'settings/app'
 export interface AppSettings {
   geofenceRadiusKm: number
   defaultPassDurationDays: number
+  /**
+   * Non-service dates as YYYY-MM-DD in college-local time. Sundays are derived
+   * from the date itself and are deliberately not listed here — only dates a
+   * calendar cannot infer belong in this list.
+   */
+  holidayDates: string[]
 }
 
 const DEFAULTS: AppSettings = {
   geofenceRadiusKm: 0.2,
   defaultPassDurationDays: 180,
+  holidayDates: [],
 }
 
 // Short-lived cache — settings are read on every GPS ping (via the geofence

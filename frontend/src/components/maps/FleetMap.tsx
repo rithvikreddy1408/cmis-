@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { decodePolyline } from '../../utils/polyline'
+import { navigateToPointUrl } from '../../utils/navigation'
+import { splitRouteAtBus } from '../../utils/routeProgress'
 
 export interface FleetBus {
   busId: string
@@ -12,6 +14,16 @@ export interface FleetBus {
   occupancy?: number
   capacity?: number
   updatedAt?: string
+  /**
+   * False when the position is a scheduled parking spot rather than a GPS
+   * fix. Drawn deliberately differently — a grey, dashed, muted pin — because
+   * a student who mistakes "where this bus usually is" for "where this bus is"
+   * is being misled precisely when they are deciding whether to leave for the
+   * stop.
+   */
+  isLive?: boolean
+  /** Shown in the popup of a non-live marker to explain what it represents. */
+  parkedNote?: string
 }
 
 export interface FleetStop {
@@ -28,12 +40,35 @@ export interface FleetStop {
 const TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
 const TILE_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 
+// Bus numbers, statuses and stop names are admin-entered free text that ends
+// up inside marker and popup HTML, so every interpolation is escaped. Leaflet
+// takes HTML strings here, not nodes, so there is no framework escaping to
+// lean on.
+const ESCAPES: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+}
+function esc(value: string): string {
+  return value.replace(/[&<>"']/g, (c) => ESCAPES[c])
+}
+
 function busIcon(bus: FleetBus) {
   // A div icon rather than an image marker: the emoji is the marker, sitting
-  // on a white pill so it stays legible over any tile underneath.
+  // on a white pill so it stays legible over any tile underneath. A parked
+  // marker gets a visibly different pin so the two are never confused at a
+  // glance — muted, dashed, and labelled rather than just a dimmer bus.
+  const parked = bus.isLive === false
   return L.divIcon({
     className: 'cmis-bus-marker',
-    html: `<div class="cmis-bus-pin"><span class="cmis-bus-emoji">🚌</span><span class="cmis-bus-label">${bus.busNumber}</span></div>`,
+    html:
+      `<div class="cmis-bus-pin${parked ? ' cmis-bus-pin--parked' : ''}">` +
+      `<span class="cmis-bus-emoji">🚌</span>` +
+      `<span class="cmis-bus-label">${esc(bus.busNumber)}</span>` +
+      (parked ? '<span class="cmis-bus-offline">offline</span>' : '') +
+      `</div>`,
     iconSize: [0, 0],
     iconAnchor: [0, 0],
   })
@@ -56,6 +91,13 @@ function stopIcon(stop: FleetStop) {
 }
 
 function popupHtml(bus: FleetBus) {
+  if (bus.isLive === false) {
+    return (
+      `<div class="cmis-pop"><div class="cmis-pop-title">🚌 ${esc(bus.busNumber)}</div>` +
+      `<div class="cmis-pop-warn">Not tracking right now</div>` +
+      `<div class="cmis-pop-row">${esc(bus.parkedNote ?? 'Shown at its usual parking place, not a live position.')}</div></div>`
+    )
+  }
   const occupancy =
     bus.occupancy != null && bus.capacity != null
       ? `<div class="cmis-pop-row">Occupancy <b>${bus.occupancy}/${bus.capacity}</b></div>`
@@ -63,7 +105,7 @@ function popupHtml(bus: FleetBus) {
   const seen = bus.updatedAt
     ? `<div class="cmis-pop-row">Last ping ${new Date(bus.updatedAt).toLocaleTimeString()}</div>`
     : ''
-  return `<div class="cmis-pop"><div class="cmis-pop-title">🚌 ${bus.busNumber}</div><div class="cmis-pop-row">Status <b>${bus.status}</b></div>${occupancy}${seen}</div>`
+  return `<div class="cmis-pop"><div class="cmis-pop-title">🚌 ${esc(bus.busNumber)}</div><div class="cmis-pop-row">Status <b>${esc(bus.status)}</b></div>${occupancy}${seen}</div>`
 }
 
 export default function FleetMap({
@@ -89,6 +131,7 @@ export default function FleetMap({
   const mapRef = useRef<L.Map | null>(null)
   const markersRef = useRef<Map<string, L.Marker>>(new Map())
   const routeLayerRef = useRef<L.LayerGroup | null>(null)
+  const stopsLayerRef = useRef<L.LayerGroup | null>(null)
   // Only auto-fit the first time buses appear; refitting on every GPS ping
   // would yank the map out from under an admin who panned somewhere.
   const hasFitRef = useRef(false)
@@ -128,8 +171,36 @@ export default function FleetMap({
     }
   }, [])
 
-  // The route (path + stops) is static relative to the live bus markers, so
-  // it lives in its own layer and is only rebuilt when the route changes.
+  // Stops are their own layer, rebuilt only when the stops change. They must
+  // not be torn down on a GPS ping: re-adding a marker closes whatever popup
+  // the student had open, so tapping a stop for directions would flicker shut
+  // every few seconds.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+
+    stopsLayerRef.current?.remove()
+    const layer = L.layerGroup().addTo(map)
+    stopsLayerRef.current = layer
+
+    for (const stop of stops ?? []) {
+      L.marker([stop.lat, stop.lng], { icon: stopIcon(stop) })
+        .addTo(layer)
+        .bindPopup(
+          `<div class="cmis-pop"><div class="cmis-pop-title">${esc(stop.name)}</div>` +
+            `<a class="cmis-pop-nav" href="${navigateToPointUrl(stop)}" target="_blank" rel="noreferrer">Directions to here →</a></div>`,
+        )
+    }
+  }, [stops])
+
+  // The route line, which does follow the bus: it is split at the bus's
+  // position, so it redraws as the bus moves. Keyed on the coordinates rather
+  // than the buses array so an unchanged position does not cause a redraw.
+  // A parked bus is not travelling, so it must not split the route into
+  // "covered" and "ahead" — that would imply progress that has not happened.
+  const liveBus = buses.length === 1 && buses[0].isLive !== false ? buses[0] : null
+  const busKey = liveBus ? `${liveBus.lat},${liveBus.lng}` : ''
+
   useEffect(() => {
     const map = mapRef.current
     if (!map) return
@@ -139,31 +210,54 @@ export default function FleetMap({
     routeLayerRef.current = layer
 
     const path = encodedPolyline ? decodePolyline(encodedPolyline) : []
-    if (path.length > 1) {
-      L.polyline(
-        path.map((p) => [p.lat, p.lng] as [number, number]),
-        { color: '#0091dc', weight: 4, opacity: 0.85 },
-      ).addTo(layer)
-    }
+    const latLngs = (pts: { lat: number; lng: number }[]) =>
+      pts.map((p) => [p.lat, p.lng] as [number, number])
 
-    for (const stop of stops ?? []) {
-      L.marker([stop.lat, stop.lng], { icon: stopIcon(stop) })
-        .addTo(layer)
-        .bindPopup(`<div class="cmis-pop"><div class="cmis-pop-title">${stop.name}</div></div>`)
+    if (path.length > 1) {
+      // With a single bus on the route (the student's view) the line is split
+      // at the bus: the stretch still to come is drawn bright green, the part
+      // already covered is faded. The eye lands on where the green begins,
+      // which is the bus — so the student reads its position from the route
+      // itself instead of hunting for a small marker among the streets.
+      if (liveBus) {
+        const { travelled, remaining } = splitRouteAtBus(path, liveBus)
+        if (travelled.length > 1) {
+          L.polyline(latLngs(travelled), {
+            color: '#94a3b8',
+            weight: 4,
+            opacity: 0.55,
+          }).addTo(layer)
+        }
+        if (remaining.length > 1) {
+          // Casing underneath keeps the green readable over any tile colour.
+          L.polyline(latLngs(remaining), {
+            color: '#ffffff',
+            weight: 10,
+            opacity: 0.9,
+          }).addTo(layer)
+          L.polyline(latLngs(remaining), {
+            color: '#16a34a',
+            weight: 6,
+            opacity: 0.95,
+          }).addTo(layer)
+        }
+      } else {
+        L.polyline(latLngs(path), { color: '#0091dc', weight: 4, opacity: 0.85 }).addTo(layer)
+      }
     }
 
     // Frame the route when there is no live bus to frame instead.
     const framePoints: [number, number][] = [
-      ...path.map((p) => [p.lat, p.lng] as [number, number]),
+      ...latLngs(path),
       ...(stops ?? []).map((s) => [s.lat, s.lng] as [number, number]),
     ]
     if (!hasFitRef.current && buses.length === 0 && framePoints.length > 0) {
       hasFitRef.current = true
       map.fitBounds(L.latLngBounds(framePoints), { padding: [48, 48], maxZoom: 15 })
     }
-    // buses is intentionally excluded: this layer must not rebuild on each ping.
+    // Keyed on busKey, not the buses array, so only real movement redraws.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stops, encodedPolyline])
+  }, [stops, encodedPolyline, busKey])
 
   // Reconcile markers against the current bus list: move the ones that are
   // still reporting, drop the ones that stopped.

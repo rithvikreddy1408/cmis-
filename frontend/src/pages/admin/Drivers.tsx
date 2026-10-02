@@ -16,6 +16,7 @@ interface DriverForm {
   phone: string
   email: string
   licenseNumber: string
+  password?: string
 }
 
 export default function Drivers() {
@@ -44,10 +45,17 @@ export default function Drivers() {
 
   const createMutation = useMutation({
     mutationFn: driversApi.create,
-    onSuccess: ({ driver, tempPassword }) => {
+    onSuccess: ({ driver, tempPassword }, variables) => {
       queryClient.invalidateQueries({ queryKey: ['drivers'] })
       setCreating(false)
-      notify('success', `${driver.name} added. Temp password: ${tempPassword} (shown once)`)
+      // Only warn about losing it when the admin did not choose it themselves.
+      notify(
+        'success',
+        `${driver.name} added. Login: ${driver.email} · Password: ${tempPassword}` +
+          ((variables as { password?: string }).password?.trim()
+            ? ''
+            : ' (generated, shown once — copy it now)'),
+      )
     },
     onError: (err: unknown) => notify('error', extractError(err)),
   })
@@ -244,6 +252,26 @@ function DriverFormModal({
           {...register('licenseNumber', { required: 'Required' })}
           error={errors.licenseNumber?.message}
         />
+
+        {!lockEmail && (
+          <div>
+            <TextField
+              label="Password (optional)"
+              type="text"
+              autoComplete="new-password"
+              placeholder="Leave blank to generate one automatically"
+              {...register('password', {
+                minLength: { value: 6, message: 'At least 6 characters' },
+              })}
+              error={errors.password?.message}
+            />
+            <p className="mt-1 text-xs text-slate-600">
+              Set one here to hand it to the driver directly. Left blank, a random password is
+              generated and shown once after saving — if that is missed, it cannot be recovered and
+              the account needs a reset.
+            </p>
+          </div>
+        )}
 
         <div className="flex justify-end gap-3 pt-2">
           <button type="button" onClick={onClose} className="rounded-lg px-4 py-2 text-sm text-slate-700 hover:bg-slate-200">

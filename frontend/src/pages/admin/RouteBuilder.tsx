@@ -29,6 +29,7 @@ export default function RouteBuilder() {
   const [polyline, setPolyline] = useState<string | null>(null)
   const [mapCenter, setMapCenter] = useState<LatLng>(DEFAULT_CENTER)
   const [banner, setBanner] = useState<{ kind: 'success' | 'error'; message: string } | null>(null)
+  const [placing, setPlacing] = useState<'start' | 'stop' | 'end'>('stop')
   const [geocodingStart, setGeocodingStart] = useState(false)
   const [geocodingDest, setGeocodingDest] = useState(false)
   const [previewing, setPreviewing] = useState(false)
@@ -88,7 +89,24 @@ export default function RouteBuilder() {
     }
   }
 
+  // Typing a place name and geocoding it is a guess — "kothapet" resolves to
+  // whichever feature the gazetteer ranks first, which is rarely the exact
+  // junction a bus actually halts at. Clicking the map is the authoritative
+  // way to place a point, so the click target is selectable rather than
+  // hard-wired to "add a stop".
   function handleMapClick(lat: number, lng: number) {
+    if (placing === 'start') {
+      setStartLocation({ lat, lng })
+      setPlacing('stop')
+      notify('success', 'Start point placed. Clicks now add stops.')
+      return
+    }
+    if (placing === 'end') {
+      setDestinationLocation({ lat, lng })
+      setPlacing('stop')
+      notify('success', 'Destination placed. Clicks now add stops.')
+      return
+    }
     setStops((prev) => [...prev, { name: `Stop ${prev.length + 1}`, lat, lng, order: prev.length }])
   }
 
@@ -135,7 +153,11 @@ export default function RouteBuilder() {
   }
 
   const saveMutation = useMutation({
-    mutationFn: () => {
+    mutationFn: (override: {
+      polyline?: string
+      distance?: number
+      expectedTime?: number
+    }) => {
       const payload = {
         routeName,
         startPoint,
@@ -143,9 +165,9 @@ export default function RouteBuilder() {
         startLocation,
         destinationLocation,
         stops,
-        distance,
-        expectedTime,
-        polyline,
+        distance: override.distance ?? distance,
+        expectedTime: override.expectedTime ?? expectedTime,
+        polyline: override.polyline ?? polyline,
       }
       return isEditing ? routesApi.update(id!, payload) : routesApi.create(payload)
     },
@@ -153,12 +175,44 @@ export default function RouteBuilder() {
     onError: (err: unknown) => notify('error', extractError(err)),
   })
 
-  function handleSave() {
+  // Previewing is what computes the road geometry, and it was easy to skip —
+  // the route then saved with stops but no line, so students saw loose dots
+  // and no path, and the live progress highlight had nothing to draw along.
+  // Saving now fills it in first when it is missing and the endpoints allow it.
+  async function handleSaveWithRoute() {
     if (!routeName.trim() || !startPoint.trim() || !destination.trim()) {
       notify('error', 'Route name, start point, and destination are required.')
       return
     }
-    saveMutation.mutate()
+    if (!polyline && startLocation && destinationLocation) {
+      setPreviewing(true)
+      try {
+        const waypoints = [...stops]
+          .sort((a, b) => a.order - b.order)
+          .map((s) => ({ lat: s.lat, lng: s.lng }))
+        const result = await mapsApi.directions(
+          `${startLocation.lat},${startLocation.lng}`,
+          `${destinationLocation.lat},${destinationLocation.lng}`,
+          waypoints,
+        )
+        setPolyline(result.polyline)
+        setDistance(result.distanceKm)
+        setExpectedTime(result.durationMin)
+        saveMutation.mutate({
+          polyline: result.polyline,
+          distance: result.distanceKm,
+          expectedTime: result.durationMin,
+        })
+        return
+      } catch {
+        // Routing is a convenience here, not a gate — a route with named stops
+        // is still useful, so a failure saves without the drawn line.
+        notify('error', 'Could not draw the road route; saving without it.')
+      } finally {
+        setPreviewing(false)
+      }
+    }
+    saveMutation.mutate({})
   }
 
   const sortedStops = [...stops].sort((a, b) => a.order - b.order)
@@ -195,7 +249,7 @@ export default function RouteBuilder() {
                   label="Start Point"
                   value={startPoint}
                   onChange={(e) => setStartPoint(e.target.value)}
-                  placeholder="e.g. Main Gate, Campus"
+                  placeholder="Name students will see, e.g. Kothapet"
                 />
               </div>
               <button
@@ -225,7 +279,7 @@ export default function RouteBuilder() {
                   label="Destination"
                   value={destination}
                   onChange={(e) => setDestination(e.target.value)}
-                  placeholder="e.g. Tech Park"
+                  placeholder="Name students will see, e.g. Sreyas College"
                 />
               </div>
               <button
@@ -249,9 +303,37 @@ export default function RouteBuilder() {
           </div>
 
           <div>
+            <p className="mb-1.5 text-sm text-slate-700">Place on map by clicking</p>
+            <div className="mb-3 grid grid-cols-3 gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1">
+              {(
+                [
+                  ['start', 'Start', '#059669'],
+                  ['stop', 'Stop', '#0091dc'],
+                  ['end', 'End', '#dc2626'],
+                ] as const
+              ).map(([mode, label, color]) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => setPlacing(mode)}
+                  aria-pressed={placing === mode}
+                  className={`flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium transition ${
+                    placing === mode
+                      ? 'bg-white text-slate-900 shadow-sm'
+                      : 'text-slate-600 hover:text-slate-800'
+                  }`}
+                >
+                  <span className="h-2 w-2 rounded-full" style={{ background: color }} />
+                  {label}
+                </button>
+              ))}
+            </div>
+
             <div className="mb-2 flex items-center justify-between">
               <p className="text-sm text-slate-700">Stops ({sortedStops.length})</p>
-              <span className="text-xs text-slate-600">Click the map to add</span>
+              <span className="text-xs text-slate-600">
+                {placing === 'stop' ? 'Click map to add a stop' : `Click map to set ${placing === 'start' ? 'start' : 'destination'}`}
+              </span>
             </div>
             <div className="space-y-2">
               {sortedStops.map((stop, i) => (
@@ -315,8 +397,8 @@ export default function RouteBuilder() {
           )}
 
           <button
-            onClick={handleSave}
-            disabled={saveMutation.isPending}
+            onClick={handleSaveWithRoute}
+            disabled={saveMutation.isPending || previewing}
             className="flex w-full items-center justify-center gap-2 rounded-lg btn-primary py-2.5 text-sm font-medium text-white transition disabled:opacity-60"
           >
             {saveMutation.isPending ? (
@@ -342,7 +424,13 @@ export default function RouteBuilder() {
           ]}
           encodedPolyline={polyline}
           onMapClick={handleMapClick}
-          emptyMessage="Click anywhere on the map to add a stop."
+          emptyMessage={
+            placing === 'start'
+              ? 'Click the exact start point on the map.'
+              : placing === 'end'
+                ? 'Click the exact destination on the map.'
+                : 'Click the map to drop a stop — switch above to place the start or destination.'
+          }
         />
       </div>
     </motion.div>

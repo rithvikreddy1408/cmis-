@@ -9,6 +9,7 @@ export default function Settings() {
   const queryClient = useQueryClient()
   const [geofenceRadiusKm, setGeofenceRadiusKm] = useState('')
   const [defaultPassDurationDays, setDefaultPassDurationDays] = useState('')
+  const [holidayDates, setHolidayDates] = useState('')
   const [banner, setBanner] = useState<{ kind: 'success' | 'error'; message: string } | null>(null)
 
   const { data, isLoading } = useQuery({ queryKey: ['settings'], queryFn: settingsApi.get })
@@ -17,6 +18,7 @@ export default function Settings() {
     if (data) {
       setGeofenceRadiusKm(String(data.geofenceRadiusKm))
       setDefaultPassDurationDays(String(data.defaultPassDurationDays))
+      setHolidayDates((data.holidayDates ?? []).join('\n'))
     }
   }, [data])
 
@@ -25,6 +27,10 @@ export default function Settings() {
       settingsApi.update({
         geofenceRadiusKm: Number(geofenceRadiusKm),
         defaultPassDurationDays: Number(defaultPassDurationDays),
+        holidayDates: holidayDates
+          .split(/[\n,]/)
+          .map((d) => d.trim())
+          .filter(Boolean),
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['settings'] })
@@ -80,6 +86,25 @@ export default function Settings() {
           />
           <p className="mt-1 text-xs text-slate-600">
             Suggested expiry length when issuing a new bus pass.
+          </p>
+        </div>
+
+        <div>
+          <label className="mb-1 block text-sm text-slate-700" htmlFor="holiday-dates">
+            Holiday dates
+          </label>
+          <textarea
+            id="holiday-dates"
+            rows={5}
+            value={holidayDates}
+            onChange={(e) => setHolidayDates(e.target.value)}
+            placeholder={'2026-01-26\n2026-08-15\n2026-10-20'}
+            className="w-full rounded-lg input px-3 py-2 font-mono text-sm"
+          />
+          <p className="mt-1 text-xs text-slate-600">
+            One date per line, <code>YYYY-MM-DD</code>. On these days — and every Sunday, which is
+            worked out from the date — an untracked bus is shown parked at the route's destination
+            all day instead of at its start point.
           </p>
         </div>
 
