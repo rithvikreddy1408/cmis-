@@ -19,11 +19,10 @@ import { dashboardRouter } from './routes/dashboard.routes.js'
 import { settingsRouter } from './routes/settings.routes.js'
 import { reportsRouter } from './routes/reports.routes.js'
 import { errorHandler } from './middleware/errorHandler.js'
+import { parseCorsOrigin } from './utils/corsOrigin.js'
 
 export function createApp(): Express {
-  const corsOrigin = (process.env.CORS_ORIGIN ?? 'http://localhost:5173')
-    .split(',')
-    .map((s) => s.trim())
+  const corsOrigin = parseCorsOrigin(process.env.CORS_ORIGIN)
 
   const app = express()
 
