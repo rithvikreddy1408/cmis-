@@ -15,8 +15,8 @@ import {
 import { Users, Contact, Bus as BusIcon, Navigation, Ticket, ClipboardCheck } from 'lucide-react'
 import StatTile from '../../components/ui/StatTile'
 import { SkeletonCard, SkeletonChart } from '../../components/ui/Skeleton'
-import MapContainer from '../../components/maps/MapContainer'
-import BusMarker from '../../components/maps/BusMarker'
+import FleetMap, { type FleetBus } from '../../components/maps/FleetMap'
+import { SERVICE_AREA_CENTER, DEFAULT_MAP_ZOOM } from '../../utils/mapDefaults'
 import { dashboardApi } from '../../services/dashboard.api'
 import { busesApi } from '../../services/buses.api'
 import { gpsApi } from '../../services/gps.api'
@@ -28,8 +28,6 @@ const SEQUENTIAL_BLUE = '#3987e5'
 const STATUS = { good: '#0ca30c', warning: '#fab219', critical: '#d03b3b' }
 const GRID_COLOR = '#2c2c2a'
 const AXIS_COLOR = '#898781'
-
-const DEFAULT_CENTER = { lat: 13.0827, lng: 80.2707 } // Chennai
 
 function occupancyColor(ratio: number) {
   if (ratio >= 0.9) return STATUS.critical
@@ -90,9 +88,23 @@ export default function AdminDashboard() {
 
   const activeBuses = (buses?.data ?? []).filter((b) => positionByBusId.has(b.busId))
 
+  const fleetBuses: FleetBus[] = activeBuses.map((bus) => {
+    const pos = positionByBusId.get(bus.busId)!
+    return {
+      busId: bus.busId,
+      busNumber: bus.busNumber,
+      lat: pos.latitude,
+      lng: pos.longitude,
+      status: bus.status,
+      occupancy: bus.currentOccupancy,
+      capacity: bus.capacity,
+      updatedAt: pos.updatedAt,
+    }
+  })
+
   return (
     <div>
-      <h1 className="mb-5 text-xl font-semibold text-slate-100">Admin Dashboard</h1>
+      <h1 className="mb-5 text-xl font-semibold text-slate-900">Admin Dashboard</h1>
 
       <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
         {overviewLoading ? (
@@ -116,55 +128,48 @@ export default function AdminDashboard() {
 
       <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="h-96 overflow-hidden rounded-2xl lg:col-span-2">
-          <MapContainer center={DEFAULT_CENTER} zoom={12}>
-            {activeBuses.map((bus) => {
-              const pos = positionByBusId.get(bus.busId)
-              if (!pos) return null
-              return (
-                <BusMarker
-                  key={bus.busId}
-                  position={{ lat: pos.latitude, lng: pos.longitude }}
-                  heading={pos.heading}
-                  label={`${bus.busNumber} (${bus.status})`}
-                  onClick={() => setSelectedBus(bus)}
-                />
-              )
-            })}
-          </MapContainer>
+          <FleetMap
+            buses={fleetBuses}
+            center={SERVICE_AREA_CENTER}
+            zoom={DEFAULT_MAP_ZOOM}
+            onSelect={(busId) =>
+              setSelectedBus((buses?.data ?? []).find((b) => b.busId === busId) ?? null)
+            }
+          />
         </div>
 
         <div className="card p-5">
-          <h2 className="mb-3 text-sm font-medium text-slate-300">
+          <h2 className="mb-3 text-sm font-medium text-slate-700">
             {selectedBus ? selectedBus.busNumber : 'Fleet'}
           </h2>
           {selectedBus ? (
             <div className="space-y-2 text-sm">
-              <p className="text-slate-400">
+              <p className="text-slate-600">
                 Status:{' '}
                 <span
                   className={
                     selectedBus.status === 'offline'
-                      ? 'text-red-400'
+                      ? 'text-red-600'
                       : selectedBus.status === 'on_trip'
-                        ? 'text-emerald-400'
-                        : 'text-slate-300'
+                        ? 'text-emerald-600'
+                        : 'text-slate-700'
                   }
                 >
                   {selectedBus.status}
                 </span>
               </p>
-              <p className="text-slate-400">
+              <p className="text-slate-600">
                 Occupancy: {selectedBus.currentOccupancy} / {selectedBus.capacity}
               </p>
               <button
                 onClick={() => setSelectedBus(null)}
-                className="mt-2 text-xs text-indigo-400 hover:text-indigo-300"
+                className="mt-2 text-xs text-indigo-600 hover:text-indigo-700"
               >
                 Clear selection
               </button>
             </div>
           ) : (
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-slate-600">
               {activeBuses.length} bus{activeBuses.length === 1 ? '' : 'es'} reporting live.
               Click a marker for details.
             </p>
@@ -177,7 +182,7 @@ export default function AdminDashboard() {
           <SkeletonChart title="Daily Attendance (7 days)" />
         ) : (
           <div className="card p-5">
-            <h2 className="mb-3 text-sm font-medium text-slate-300">Daily Attendance (7 days)</h2>
+            <h2 className="mb-3 text-sm font-medium text-slate-700">Daily Attendance (7 days)</h2>
             <ResponsiveContainer width="100%" height={220}>
               <LineChart data={trendData}>
                 <CartesianGrid stroke={GRID_COLOR} vertical={false} />
@@ -203,7 +208,7 @@ export default function AdminDashboard() {
           <SkeletonChart title="Bus Usage (all-time trips)" />
         ) : (
           <div className="card p-5">
-            <h2 className="mb-3 text-sm font-medium text-slate-300">Bus Usage (all-time trips)</h2>
+            <h2 className="mb-3 text-sm font-medium text-slate-700">Bus Usage (all-time trips)</h2>
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={busUsage ?? []}>
                 <CartesianGrid stroke={GRID_COLOR} vertical={false} />
@@ -223,7 +228,7 @@ export default function AdminDashboard() {
           <SkeletonChart title="Driver Activity (all-time trips)" />
         ) : (
           <div className="card p-5">
-            <h2 className="mb-3 text-sm font-medium text-slate-300">Driver Activity (all-time trips)</h2>
+            <h2 className="mb-3 text-sm font-medium text-slate-700">Driver Activity (all-time trips)</h2>
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={driverActivity ?? []}>
                 <CartesianGrid stroke={GRID_COLOR} vertical={false} />
@@ -242,7 +247,7 @@ export default function AdminDashboard() {
 
       {buses && buses.data.length > 0 && (
         <div className="mt-4 card p-5">
-          <h2 className="mb-3 text-sm font-medium text-slate-300">Occupancy by Bus</h2>
+          <h2 className="mb-3 text-sm font-medium text-slate-700">Occupancy by Bus</h2>
           <ResponsiveContainer width="100%" height={Math.max(120, buses.data.length * 36)}>
             <BarChart data={buses.data} layout="vertical" margin={{ left: 16 }}>
               <CartesianGrid stroke={GRID_COLOR} horizontal={false} />

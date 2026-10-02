@@ -2,15 +2,14 @@ import type { Response } from 'express'
 import { z } from 'zod'
 import { createUserWithRole, getUserProfile } from '../services/auth.service.js'
 import { registerToken, unregisterToken } from '../services/push.service.js'
-import { ROLES } from '../types/role.js'
 import type { AuthedRequest } from '../middleware/auth.js'
+import { HttpError } from '../middleware/errorHandler.js'
 
 export const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
   displayName: z.string().min(1),
-  role: z.enum(ROLES as [string, ...string[]]),
-  linkedId: z.string().nullable().optional(),
+  role: z.literal('transport_admin'),
 })
 
 export const fcmTokenSchema = z.object({
@@ -18,6 +17,16 @@ export const fcmTokenSchema = z.object({
 })
 
 export async function register(req: AuthedRequest, res: Response) {
+  // Only the seeded super admin can create another administrator. In
+  // particular, a transport admin must never be able to grant super-admin
+  // claims through this generic account-creation endpoint.
+  if (req.user?.role !== 'super_admin') {
+    throw new HttpError(
+      403,
+      'Only a super admin can create transport admin accounts',
+      'FORBIDDEN',
+    )
+  }
   const user = await createUserWithRole(req.body)
   res.status(201).json(user)
 }

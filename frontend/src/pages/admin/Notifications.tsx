@@ -78,14 +78,14 @@ export default function AdminNotifications() {
 
   return (
     <div>
-      <h1 className="mb-5 text-xl font-semibold text-slate-100">Notifications</h1>
+      <h1 className="mb-5 text-xl font-semibold text-slate-900">Notifications</h1>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
       <div className="lg:col-span-1">
-        <h2 className="mb-3 text-sm font-medium text-slate-300">Send Notification</h2>
+        <h2 className="mb-3 text-sm font-medium text-slate-700">Send Notification</h2>
         <div className="space-y-3 card p-5">
           <TextField label="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
           <div>
-            <label htmlFor={messageId} className="mb-1 block text-sm text-slate-300">
+            <label htmlFor={messageId} className="mb-1 block text-sm text-slate-700">
               Message
             </label>
             <textarea
@@ -93,7 +93,7 @@ export default function AdminNotifications() {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               rows={3}
-              className="w-full rounded-lg input px-3 py-2 text-sm text-slate-100"
+              className="w-full rounded-lg input px-3 py-2 text-sm text-slate-900"
             />
           </div>
           <SelectField
@@ -131,13 +131,13 @@ export default function AdminNotifications() {
       </div>
 
       <div className="lg:col-span-2">
-        <h2 className="mb-3 text-sm font-medium text-slate-300">All Notifications</h2>
+        <h2 className="mb-3 text-sm font-medium text-slate-700">All Notifications</h2>
         <PushNotificationToggle />
         {banner && <Banner kind={banner.kind} message={banner.message} />}
 
         {isLoading ? (
           <div className="flex justify-center py-10">
-            <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
+            <Loader2 className="h-5 w-5 animate-spin text-slate-600" />
           </div>
         ) : !data?.length ? (
           <EmptyState

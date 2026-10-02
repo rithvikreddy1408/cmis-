@@ -9,6 +9,7 @@ import {
   FileBarChart,
   Settings,
   Bell,
+  ShieldPlus,
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import AppShell, { type NavItem } from './AppShell'
@@ -16,7 +17,7 @@ import { notificationsApi } from '../../services/notifications.api'
 import { useAuth } from '../../context/AuthContext'
 
 export default function AdminLayout() {
-  const { user } = useAuth()
+  const { user, role } = useAuth()
   const { data: notifications } = useQuery({
     queryKey: ['notifications'],
     queryFn: notificationsApi.list,
@@ -36,6 +37,7 @@ export default function AdminLayout() {
     { label: 'Reports', to: '/admin/reports', icon: FileBarChart },
     { label: 'Settings', to: '/admin/settings', icon: Settings },
   ]
+  if (role === 'super_admin') navItems.splice(2, 0, { label: 'Admin Accounts', to: '/admin/admins', icon: ShieldPlus })
 
   return <AppShell roleLabel="Admin" navItems={navItems} />
 }

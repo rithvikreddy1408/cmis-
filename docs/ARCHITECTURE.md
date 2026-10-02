@@ -51,6 +51,7 @@ Hardware: RFID Reader (ESP32/Arduino) → HTTP POST with device API key
 1. **Backend-mediated writes.** Clients never write attendance, GPS, occupancy, or pass data directly to Firestore. All mutations go through Express so business rules (pass validation, occupancy limits, role checks) are enforced in one place. Firestore Security Rules are the second line of defense.
 2. **Socket.IO for fan-out, Firestore for persistence.** GPS pings and attendance events hit the backend, are persisted to Firestore, and are simultaneously broadcast over Socket.IO rooms. Students subscribed to a bus room get sub-second updates without Firestore read costs per viewer.
 3. **Roles via Firebase custom claims.** `role` (`super_admin` | `transport_admin` | `driver` | `student`) is set with the Admin SDK at account creation. Both Express middleware and Firestore rules read the same claim — no duplicated role tables.
+   The seeded super admin creates transport-admin accounts. Transport admins create student and driver accounts through their domain forms; those flows link the Firebase identity to its student/driver record and issue a temporary password. Generic registration cannot grant a role or link an arbitrary student/driver profile.
 4. **Google server-side APIs proxied.** Directions/Geocoding/Distance Matrix calls go through the backend (`/api/v1/maps/*`) so the unrestricted server key never ships to the browser. The browser only gets the referrer-restricted Maps JS key.
 5. **RFID devices authenticate with device API keys**, not Firebase Auth. Each reader has a `deviceId` + secret stored hashed in Firestore; the tap endpoint validates it before processing.
 
@@ -138,7 +139,7 @@ Collection names in one constants file, shared shape in `types/`.
 
 | Area | Endpoints | Access |
 |---|---|---|
-| Auth | `POST /auth/register` (admin creates users), `GET /auth/me` | admin / any |
+| Auth | `POST /auth/register` (super admin creates transport admins), `GET /auth/me` | super admin / any |
 | Students | CRUD `/students`, `POST /students/import` (xlsx), `GET /students/export`, `POST /students/:id/assign-rfid`, `/assign-bus` | admin |
 | Drivers | CRUD `/drivers`, `POST /drivers/:id/assign-bus` | admin |
 | Buses | CRUD `/buses`, `GET /buses/search?q=` | admin (write), all (read) |
@@ -196,8 +197,8 @@ Driver taps "Start Trip"
  → throttled to 1 POST /gps/ping per 5s
  → backend: update gps/{busId}, append sampled history, compute ETA to next
    stop via Distance Matrix (cached 30s), emit gps:update
-Student "Track Bus"
- → GET /gps/:busId (initial position) + subscribe:bus
+Student "Track Bus" (their assigned bus only)
+ → GET /gps/:busId (initial position) + authorized subscribe:bus
  → Maps JS: animated marker interpolates between pings, route polyline
    from routes.polyline, nearest-stop + ETA labels
 "End Trip" → POST /trips/:id/end → bus idle, occupancy reset, GPS stops
@@ -209,13 +210,14 @@ Edge handling: page-visibility warning to driver if tab backgrounds; server watc
 
 ## 7. Security Model
 
-1. **Firebase Auth** — email/password; admin-created accounts for drivers/students (bulk-created on Excel import with forced password reset).
+1. **Firebase Auth** — email/password; the super admin creates transport admins, and transport admins create linked driver/student accounts (bulk-created on Excel import with temporary passwords). Students sign in with the issued email and temporary password, then see their assigned bus and route.
 2. **Custom claims** — single source of role truth; Express `requireRole(...)` and Firestore rules both read it.
-3. **Firestore rules** — deny-by-default; clients get read-only access scoped to their own docs (student reads own attendance/pass; anyone authenticated reads `gps`, `routes`, `buses`); **all writes only via Admin SDK** (rules block client writes to operational collections).
-4. **Device auth** — RFID readers use per-device hashed API keys; tap endpoint rate-limited.
-5. **Transport & keys** — HTTPS everywhere; server Maps key never in frontend; browser Maps key referrer-restricted; all secrets in `.env` (gitignored) / hosting secret manager.
-6. **Input validation** — zod schemas on every route; Excel imports validated row-by-row with a rejects report.
-7. **Rate limiting** — global + strict on `/auth`, `/gps/ping`, `/rfid/tap`.
+3. **Assignment-scoped reads** — student bus, route, GPS, and Socket.IO subscriptions are checked against the student's assigned bus. Drivers receive the same checks for their assigned bus. Admins retain fleet-wide visibility.
+4. **Firestore rules** — deny-by-default; **all writes only via Admin SDK** (rules block client writes to operational collections).
+5. **Device auth** — RFID readers use per-device hashed API keys; tap endpoint rate-limited.
+6. **Transport & keys** — HTTPS everywhere; server Maps key never in frontend; browser Maps key referrer-restricted; all secrets in `.env` (gitignored) / hosting secret manager.
+7. **Input validation** — zod schemas on every route; Excel imports validated row-by-row with a rejects report.
+8. **Rate limiting** — global + strict on `/auth`, `/gps/ping`, `/rfid/tap`.
 
 ---
 

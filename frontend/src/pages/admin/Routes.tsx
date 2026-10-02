@@ -43,11 +43,11 @@ export default function Routes() {
     { header: 'Stops', accessor: (r) => r.stops.length },
     {
       header: 'Distance (km)',
-      accessor: (r) => r.distance ?? <span className="text-slate-400">—</span>,
+      accessor: (r) => r.distance ?? <span className="text-slate-600">—</span>,
     },
     {
       header: 'ETA (min)',
-      accessor: (r) => r.expectedTime ?? <span className="text-slate-400">—</span>,
+      accessor: (r) => r.expectedTime ?? <span className="text-slate-600">—</span>,
     },
     {
       header: '',
@@ -55,13 +55,13 @@ export default function Routes() {
         <div className="flex justify-end gap-2">
           <button
             onClick={() => navigate(`/admin/routes/${r.routeId}/edit`)}
-            className="rounded-lg px-2 py-1 text-xs text-indigo-400 hover:bg-slate-800"
+            className="rounded-lg px-2 py-1 text-xs text-indigo-600 hover:bg-slate-200"
           >
             Edit
           </button>
           <button
             onClick={() => setDeleting(r)}
-            className="rounded-lg px-2 py-1 text-xs text-red-400 hover:bg-slate-800"
+            className="rounded-lg px-2 py-1 text-xs text-red-600 hover:bg-slate-200"
           >
             Delete
           </button>

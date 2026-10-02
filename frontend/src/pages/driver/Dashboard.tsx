@@ -13,6 +13,7 @@ import { useState } from 'react'
 export default function DriverDashboard() {
   const queryClient = useQueryClient()
   const [banner, setBanner] = useState<{ kind: 'success' | 'error'; message: string } | null>(null)
+  const [requestingLocation, setRequestingLocation] = useState(false)
 
   function notify(kind: 'success' | 'error', message: string) {
     setBanner({ kind, message })
@@ -65,23 +66,47 @@ export default function DriverDashboard() {
     await queryClient.invalidateQueries({ queryKey: ['bus'] })
   }
 
+  function startTripAfterLocationPermission() {
+    if (!navigator.geolocation) {
+      notify('error', 'This browser does not support location sharing.')
+      return
+    }
+    setRequestingLocation(true)
+    navigator.geolocation.getCurrentPosition(
+      () => {
+        setRequestingLocation(false)
+        startMutation.mutate()
+      },
+      (error) => {
+        setRequestingLocation(false)
+        notify(
+          'error',
+          error.code === error.PERMISSION_DENIED
+            ? 'Location access is required to start a trip. Allow location for this site in your browser settings.'
+            : `Could not get your location: ${error.message}`,
+        )
+      },
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 },
+    )
+  }
+
   if (driverLoading || tripLoading) {
     return (
       <div className="flex items-center justify-center py-20">
         <h1 className="sr-only">Driver Dashboard</h1>
-        <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+        <Loader2 className="h-6 w-6 animate-spin text-slate-600" />
       </div>
     )
   }
 
   if (!driver?.busAssigned) {
     return (
-      <div className="max-w-lg rounded-2xl border border-amber-900 bg-amber-950/20 p-6">
-        <div className="mb-2 flex items-center gap-2 text-amber-400">
+      <div className="max-w-lg rounded-2xl border border-amber-200 bg-amber-50 p-6">
+        <div className="mb-2 flex items-center gap-2 text-amber-600">
           <TriangleAlert className="h-5 w-5" />
           <h1 className="text-lg font-semibold">No bus assigned</h1>
         </div>
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-slate-600">
           You don't have a bus assigned yet. Contact your transport admin to get set up before
           starting a trip.
         </p>
@@ -95,11 +120,11 @@ export default function DriverDashboard() {
       <div className="card p-6">
         <div className="mb-4 flex items-center gap-3">
           <div className="rounded-xl bg-indigo-500/15 p-3">
-            <BusIcon className="h-6 w-6 text-indigo-400" />
+            <BusIcon className="h-6 w-6 text-indigo-600" />
           </div>
           <div>
-            <h1 className="text-lg font-semibold text-slate-100">{bus?.busNumber ?? '—'}</h1>
-            <p className="text-sm text-slate-400">Driver Dashboard — {driver.name}</p>
+            <h1 className="text-lg font-semibold text-slate-900">{bus?.busNumber ?? '—'}</h1>
+            <p className="text-sm text-slate-600">Driver Dashboard — {driver.name}</p>
           </div>
         </div>
 
@@ -107,38 +132,38 @@ export default function DriverDashboard() {
 
         {activeTrip ? (
           <>
-            <div className="mb-4 flex items-center gap-2 rounded-lg border border-emerald-900 bg-emerald-950/30 px-3 py-2 text-sm text-emerald-400">
+            <div className="mb-4 flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-600">
               <LiveDot />
               Trip active since {new Date(activeTrip.startTime).toLocaleTimeString()}
             </div>
 
             {bus && (
-              <div className="mb-4 flex items-center gap-2 rounded-lg border border-slate-800 bg-slate-950/50 px-3 py-2 text-sm text-slate-300">
-                <Users className="h-4 w-4 text-indigo-400" />
+              <div className="mb-4 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                <Users className="h-4 w-4 text-indigo-600" />
                 Onboard: {bus.currentOccupancy} / {bus.capacity}
               </div>
             )}
 
             {publisher.status === 'error' && (
-              <div className="mb-4 flex items-start gap-2 rounded-lg border border-red-900 bg-red-950/40 px-3 py-2 text-sm text-red-400">
+              <div className="mb-4 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
                 <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" />
                 {publisher.error}
               </div>
             )}
             {publisher.tabHidden && (
-              <div className="mb-4 flex items-start gap-2 rounded-lg border border-amber-900 bg-amber-950/30 px-3 py-2 text-sm text-amber-400">
+              <div className="mb-4 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-600">
                 <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" />
                 This tab is in the background — some browsers pause location updates. Keep it in
                 the foreground while driving.
               </div>
             )}
             {publisher.status === 'watching' && publisher.lastPosition && (
-              <div className="mb-4 flex items-center gap-2 rounded-lg border border-slate-800 bg-slate-950/50 px-3 py-2 text-sm text-slate-300">
-                <MapPin className="h-4 w-4 text-indigo-400" />
+              <div className="mb-4 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                <MapPin className="h-4 w-4 text-indigo-600" />
                 Sharing location: {publisher.lastPosition.lat.toFixed(5)},{' '}
                 {publisher.lastPosition.lng.toFixed(5)}
                 {publisher.wakeLockActive && (
-                  <span className="ml-auto text-xs text-emerald-400">Screen lock prevented</span>
+                  <span className="ml-auto text-xs text-emerald-600">Screen lock prevented</span>
                 )}
               </div>
             )}
@@ -158,16 +183,16 @@ export default function DriverDashboard() {
           </>
         ) : (
           <button
-            onClick={() => startMutation.mutate()}
-            disabled={startMutation.isPending}
+            onClick={startTripAfterLocationPermission}
+            disabled={startMutation.isPending || requestingLocation}
             className="flex w-full items-center justify-center gap-2 rounded-lg btn-success py-2.5 text-sm font-medium text-white transition disabled:opacity-60"
           >
-            {startMutation.isPending ? (
+            {startMutation.isPending || requestingLocation ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <Play className="h-4 w-4" />
             )}
-            Start Trip
+            {requestingLocation ? 'Waiting for location permission…' : 'Allow location & Start Trip'}
           </button>
         )}
       </div>

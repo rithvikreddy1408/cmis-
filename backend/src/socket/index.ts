@@ -2,6 +2,8 @@ import type { Server as HttpServer } from 'node:http'
 import { Server, type Socket } from 'socket.io'
 import { getAuth } from '../firebase/admin.js'
 import type { Role } from '../types/role.js'
+import { getDb } from '../firebase/admin.js'
+import { COLLECTIONS } from '../firebase/collections.js'
 
 export let io: Server
 
@@ -40,9 +42,24 @@ export function initSocket(httpServer: HttpServer, corsOrigin: string[]) {
       socket.join('admin')
     }
 
-    socket.on('subscribe:bus', (busId: unknown) => {
-      if (typeof busId === 'string' && busId.length > 0 && busId.length < 64) {
+    socket.on('subscribe:bus', async (busId: unknown) => {
+      if (typeof busId !== 'string' || busId.length === 0 || busId.length >= 64) return
+      if (data.role === 'super_admin' || data.role === 'transport_admin') {
         socket.join(`bus:${busId}`)
+        return
+      }
+      if (data.role !== 'student' && data.role !== 'driver') return
+
+      try {
+        const db = getDb()
+        const user = await db.collection(COLLECTIONS.users).doc(data.uid).get()
+        const linkedId = user.data()?.linkedId
+        if (typeof linkedId !== 'string') return
+        const collection = data.role === 'student' ? COLLECTIONS.students : COLLECTIONS.drivers
+        const linked = await db.collection(collection).doc(linkedId).get()
+        if (linked.data()?.busAssigned === busId) socket.join(`bus:${busId}`)
+      } catch (error) {
+        console.error('[socket] bus subscription authorization failed:', error)
       }
     })
     socket.on('unsubscribe:bus', (busId: unknown) => {

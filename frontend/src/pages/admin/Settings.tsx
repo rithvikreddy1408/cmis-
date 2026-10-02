@@ -41,14 +41,14 @@ export default function Settings() {
     return (
       <div className="flex items-center justify-center py-20">
         <h1 className="sr-only">Settings</h1>
-        <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+        <Loader2 className="h-6 w-6 animate-spin text-slate-600" />
       </div>
     )
   }
 
   return (
     <div className="max-w-lg">
-      <h1 className="mb-5 text-xl font-semibold text-slate-100">Settings</h1>
+      <h1 className="mb-5 text-xl font-semibold text-slate-900">Settings</h1>
 
       {banner && <Banner kind={banner.kind} message={banner.message} />}
 
@@ -63,7 +63,7 @@ export default function Settings() {
             value={geofenceRadiusKm}
             onChange={(e) => setGeofenceRadiusKm(e.target.value)}
           />
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="mt-1 text-xs text-slate-600">
             How close a bus must be to a stop before students get a "bus near your stop"
             notification.
           </p>
@@ -78,7 +78,7 @@ export default function Settings() {
             value={defaultPassDurationDays}
             onChange={(e) => setDefaultPassDurationDays(e.target.value)}
           />
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="mt-1 text-xs text-slate-600">
             Suggested expiry length when issuing a new bus pass.
           </p>
         </div>

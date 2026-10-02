@@ -23,13 +23,13 @@ export default function DriverNotifications() {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="mb-5 text-xl font-semibold text-slate-100">Notifications</h1>
+      <h1 className="mb-5 text-xl font-semibold text-slate-900">Notifications</h1>
 
       <PushNotificationToggle />
 
       {isLoading ? (
         <div className="flex justify-center py-10">
-          <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
+          <Loader2 className="h-5 w-5 animate-spin text-slate-600" />
         </div>
       ) : !data?.length ? (
         <EmptyState

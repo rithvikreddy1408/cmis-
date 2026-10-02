@@ -27,11 +27,11 @@ export default function Modal({
         className={`w-full ${width} card max-h-[90vh] overflow-y-auto p-6`}
       >
         <div className="mb-5 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-100">{title}</h2>
+          <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
           <button
             onClick={onClose}
             aria-label="Close dialog"
-            className="rounded-lg p-1 text-slate-400 transition hover:bg-white/5 hover:text-slate-300"
+            className="rounded-lg p-1 text-slate-600 transition hover:bg-black/5 hover:text-slate-700"
           >
             <X className="h-5 w-5" />
           </button>

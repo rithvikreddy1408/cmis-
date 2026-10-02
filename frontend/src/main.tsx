@@ -27,7 +27,22 @@ if (import.meta.env.VITE_SENTRY_DSN) {
   })
 }
 
-const queryClient = new QueryClient()
+// Defaults matter more than any single query here: with React Query's stock
+// settings every navigation treats cached data as stale on mount, so revisiting
+// a page you saw seconds ago blanks to skeletons and refetches. Serving the
+// cache first and revalidating in the background is what makes navigation feel
+// instant. Live data stays fresh through the explicit refetchInterval on the
+// queries that need it (GPS, trips, notifications) and Socket.IO pushes.
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60_000,
+      gcTime: 10 * 60_000,
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+})
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

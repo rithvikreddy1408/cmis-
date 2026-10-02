@@ -100,7 +100,7 @@ export default function Drivers() {
           onChange={(e) =>
             assignBusMutation.mutate({ id: d.driverId, busId: e.target.value || null })
           }
-          className="rounded-lg input px-2 py-1 text-xs text-slate-200"
+          className="rounded-lg input px-2 py-1 text-xs text-slate-800"
         >
           <option value="">Unassigned</option>
           {(buses?.data ?? []).map((b) => (
@@ -115,10 +115,10 @@ export default function Drivers() {
       header: '',
       accessor: (d) => (
         <div className="flex justify-end gap-2">
-          <button onClick={() => setEditing(d)} className="rounded-lg px-2 py-1 text-xs text-indigo-400 hover:bg-slate-800">
+          <button onClick={() => setEditing(d)} className="rounded-lg px-2 py-1 text-xs text-indigo-600 hover:bg-slate-200">
             Edit
           </button>
-          <button onClick={() => setDeleting(d)} className="rounded-lg px-2 py-1 text-xs text-red-400 hover:bg-slate-800">
+          <button onClick={() => setDeleting(d)} className="rounded-lg px-2 py-1 text-xs text-red-600 hover:bg-slate-200">
             Delete
           </button>
         </div>
@@ -196,9 +196,9 @@ export default function Drivers() {
 
 function StatusBadge({ status }: { status: Driver['status'] }) {
   const styles: Record<Driver['status'], string> = {
-    active: 'bg-emerald-500/15 text-emerald-400',
-    inactive: 'bg-slate-700/40 text-slate-400',
-    on_trip: 'bg-indigo-500/15 text-indigo-400',
+    active: 'bg-emerald-500/15 text-emerald-600',
+    inactive: 'bg-slate-300/40 text-slate-600',
+    on_trip: 'bg-indigo-500/15 text-indigo-600',
   }
   return <span className={`rounded-full px-2 py-0.5 text-xs ${styles[status]}`}>{status}</span>
 }
@@ -246,7 +246,7 @@ function DriverFormModal({
         />
 
         <div className="flex justify-end gap-3 pt-2">
-          <button type="button" onClick={onClose} className="rounded-lg px-4 py-2 text-sm text-slate-300 hover:bg-slate-800">
+          <button type="button" onClick={onClose} className="rounded-lg px-4 py-2 text-sm text-slate-700 hover:bg-slate-200">
             Cancel
           </button>
           <button

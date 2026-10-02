@@ -8,8 +8,8 @@ import * as controller from '../controllers/routes.controller.js'
 
 export const busRoutesRouter = Router()
 
-// Single-route read is available to any authenticated role (needed to draw
-// a bus's route on the tracking map) — matches before the admin-only block.
+// Single-route reads are assignment-checked for students/drivers and match
+// before the admin-only block below.
 busRoutesRouter.get('/routes/:id', verifyToken, controller.get)
 
 busRoutesRouter.use('/routes', verifyToken, requireRole(...ADMIN_ROLES))

@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import { io, type Socket } from 'socket.io-client'
 import { useAuth } from './AuthContext'
+import { API_ORIGIN } from '../services/api'
 
 interface SocketContextValue {
   socket: Socket | null
@@ -40,7 +41,9 @@ export function SocketProvider({ children }: { children: ReactNode }) {
       const token = await user!.getIdToken()
       if (cancelled) return
 
-      const socket = io('/', {
+      // Same origin rule as the REST client: relative in dev (Vite proxies the
+      // websocket), absolute backend origin once deployed.
+      const socket = io(API_ORIGIN || '/', {
         path: '/socket.io',
         auth: { token },
         reconnection: true,

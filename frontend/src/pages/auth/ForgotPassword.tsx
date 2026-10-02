@@ -31,7 +31,7 @@ export default function ForgotPassword() {
   }
 
   return (
-    <main className="flex min-h-full items-center justify-center px-4 text-slate-100">
+    <main className="flex min-h-full items-center justify-center px-4 text-slate-900">
       <motion.div
         initial={{ opacity: 0, y: 16, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -44,12 +44,12 @@ export default function ForgotPassword() {
           </div>
           <div>
             <h1 className="text-lg font-semibold tracking-tight">Reset your password</h1>
-            <p className="text-sm text-slate-400">We'll email you a reset link</p>
+            <p className="text-sm text-slate-600">We'll email you a reset link</p>
           </div>
         </div>
 
         {sent ? (
-          <div className="flex items-start gap-2 rounded-lg border border-emerald-900 bg-emerald-950/40 px-3 py-3 text-sm text-emerald-400">
+          <div className="flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-3 text-sm text-emerald-600">
             <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
             <span>
               If an account exists for that email, a reset link is on its way.
@@ -58,7 +58,7 @@ export default function ForgotPassword() {
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
             <div>
-              <label htmlFor="email" className="mb-1 block text-sm text-slate-300">
+              <label htmlFor="email" className="mb-1 block text-sm text-slate-700">
                 Email
               </label>
               <input
@@ -69,12 +69,12 @@ export default function ForgotPassword() {
                 {...register('email', { required: 'Email is required' })}
               />
               {errors.email && (
-                <p className="mt-1 text-xs text-red-400">{errors.email.message}</p>
+                <p className="mt-1 text-xs text-red-600">{errors.email.message}</p>
               )}
             </div>
 
             {serverError && (
-              <p className="rounded-lg border border-red-900 bg-red-950/50 px-3 py-2 text-sm text-red-400">
+              <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
                 {serverError}
               </p>
             )}
@@ -92,7 +92,7 @@ export default function ForgotPassword() {
 
         <Link
           to="/login"
-          className="mt-6 block text-center text-sm text-indigo-400 hover:text-indigo-300"
+          className="mt-6 block text-center text-sm text-indigo-600 hover:text-indigo-700"
         >
           Back to sign in
         </Link>

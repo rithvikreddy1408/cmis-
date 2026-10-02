@@ -117,7 +117,7 @@ export default function Buses() {
           onChange={(e) =>
             assignDriverMutation.mutate({ id: b.busId, driverId: e.target.value || null })
           }
-          className="rounded-lg input px-2 py-1 text-xs text-slate-200"
+          className="rounded-lg input px-2 py-1 text-xs text-slate-800"
         >
           <option value="">Unassigned</option>
           {(drivers?.data ?? []).map((d) => (
@@ -137,7 +137,7 @@ export default function Buses() {
           onChange={(e) =>
             assignRouteMutation.mutate({ id: b.busId, routeId: e.target.value || null })
           }
-          className="rounded-lg input px-2 py-1 text-xs text-slate-200"
+          className="rounded-lg input px-2 py-1 text-xs text-slate-800"
         >
           <option value="">Unassigned</option>
           {(routes?.data ?? []).map((r) => (
@@ -152,10 +152,10 @@ export default function Buses() {
       header: '',
       accessor: (b) => (
         <div className="flex justify-end gap-2">
-          <button onClick={() => setEditing(b)} className="rounded-lg px-2 py-1 text-xs text-indigo-400 hover:bg-slate-800">
+          <button onClick={() => setEditing(b)} className="rounded-lg px-2 py-1 text-xs text-indigo-600 hover:bg-slate-200">
             Edit
           </button>
-          <button onClick={() => setDeleting(b)} className="rounded-lg px-2 py-1 text-xs text-red-400 hover:bg-slate-800">
+          <button onClick={() => setDeleting(b)} className="rounded-lg px-2 py-1 text-xs text-red-600 hover:bg-slate-200">
             Delete
           </button>
         </div>
@@ -229,10 +229,10 @@ export default function Buses() {
 
 function StatusBadge({ status }: { status: Bus['status'] }) {
   const styles: Record<Bus['status'], string> = {
-    idle: 'bg-slate-700/40 text-slate-400',
-    on_trip: 'bg-indigo-500/15 text-indigo-400',
-    offline: 'bg-red-500/15 text-red-400',
-    maintenance: 'bg-amber-500/15 text-amber-400',
+    idle: 'bg-slate-300/40 text-slate-600',
+    on_trip: 'bg-indigo-500/15 text-indigo-600',
+    offline: 'bg-red-500/15 text-red-600',
+    maintenance: 'bg-amber-500/15 text-amber-600',
   }
   return (
     <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs ${styles[status]}`}>
@@ -287,7 +287,7 @@ function BusFormModal({
         </SelectField>
 
         <div className="flex justify-end gap-3 pt-2">
-          <button type="button" onClick={onClose} className="rounded-lg px-4 py-2 text-sm text-slate-300 hover:bg-slate-800">
+          <button type="button" onClick={onClose} className="rounded-lg px-4 py-2 text-sm text-slate-700 hover:bg-slate-200">
             Cancel
           </button>
           <button

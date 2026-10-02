@@ -11,6 +11,7 @@ const Login = lazy(() => import('../pages/auth/Login'))
 const ForgotPassword = lazy(() => import('../pages/auth/ForgotPassword'))
 
 const AdminDashboard = lazy(() => import('../pages/admin/Dashboard'))
+const AdminAccounts = lazy(() => import('../pages/admin/AdminAccounts'))
 const AdminStudents = lazy(() => import('../pages/admin/Students'))
 const AdminDrivers = lazy(() => import('../pages/admin/Drivers'))
 const AdminBuses = lazy(() => import('../pages/admin/Buses'))
@@ -23,7 +24,6 @@ const AdminSettings = lazy(() => import('../pages/admin/Settings'))
 const AdminReports = lazy(() => import('../pages/admin/Reports'))
 
 const StudentDashboard = lazy(() => import('../pages/student/Dashboard'))
-const StudentSearch = lazy(() => import('../pages/student/Search'))
 const StudentTrack = lazy(() => import('../pages/student/Track'))
 const StudentAttendance = lazy(() => import('../pages/student/Attendance'))
 const StudentPass = lazy(() => import('../pages/student/Pass'))
@@ -55,6 +55,9 @@ export default function AppRouter() {
           <Route element={<RoleRoute allow={[...ADMIN_ROLES]} />}>
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
+              <Route element={<RoleRoute allow={['super_admin']} />}>
+                <Route path="admins" element={<AdminAccounts />} />
+              </Route>
               <Route path="students" element={<AdminStudents />} />
               <Route path="drivers" element={<AdminDrivers />} />
               <Route path="buses" element={<AdminBuses />} />
@@ -72,9 +75,9 @@ export default function AppRouter() {
           <Route element={<RoleRoute allow={['student']} />}>
             <Route path="/student" element={<StudentLayout />}>
               <Route index element={<StudentDashboard />} />
-              <Route path="search" element={<StudentSearch />} />
+              {/* No :busId variant — a student tracks only their assigned bus,
+                  which Track resolves from their own record. */}
               <Route path="track" element={<StudentTrack />} />
-              <Route path="track/:busId" element={<StudentTrack />} />
               <Route path="attendance" element={<StudentAttendance />} />
               <Route path="pass" element={<StudentPass />} />
               <Route path="notifications" element={<StudentNotifications />} />

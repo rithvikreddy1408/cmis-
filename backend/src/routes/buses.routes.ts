@@ -14,9 +14,8 @@ import * as controller from '../controllers/buses.controller.js'
 
 export const busesRouter = Router()
 
-// Public-ish reads (any authenticated role) — registered before the admin
-// gate below, and /buses/search before /buses/:id so the param route
-// doesn't swallow the literal "search" segment.
+// Assignment-limited reads are registered before the admin gate below, and
+// /buses/search before /buses/:id so the param route doesn't swallow it.
 busesRouter.get('/buses/search', verifyToken, controller.search)
 busesRouter.get('/buses/:id', verifyToken, controller.get)
 

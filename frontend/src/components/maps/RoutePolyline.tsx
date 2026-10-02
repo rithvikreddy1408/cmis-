@@ -7,7 +7,7 @@ import { useMap, useMapsLibrary } from '@vis.gl/react-google-maps'
 export default function RoutePolyline({
   encodedPath,
   path,
-  color = '#6366f1',
+  color = '#0091dc',
 }: {
   encodedPath?: string | null
   path?: { lat: number; lng: number }[]

@@ -4,6 +4,57 @@
 
 @theme {
   --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+
+  /* Brand reskin — the stock Tailwind slate-neutrals-plus-indigo/violet
+     combo is the single most recognizable default-dashboard look, so it is
+     overridden here at the token level rather than left in place. Every
+     existing slate, indigo, and violet utility across the app (plus the
+     AppShell/Login/ForgotPassword brand-mark gradient specifically)
+     repaints from this one block, no component touched. Same L and C as
+     the Tailwind defaults per step, hue only: contrast ratios are
+     untouched, just the color identity. Neutral rotates toward the new
+     primary hue family for cohesion; indigo becomes a deep azure, violet
+     becomes its cyan gradient partner.
+
+     The ramps stay in conventional order (50 lightest, 950 darkest) — the
+     app reads light because components reference light-surface/dark-text
+     shades, not because the scale is inverted. Writing a new component
+     here means reaching for the same shades any Tailwind project would. */
+  --color-slate-50: oklch(98.4% 0.003 213.858);
+  --color-slate-100: oklch(96.8% 0.007 213.896);
+  --color-slate-200: oklch(92.9% 0.013 221.508);
+  --color-slate-300: oklch(86.9% 0.022 218.894);
+  --color-slate-400: oklch(70.4% 0.04 222.788);
+  --color-slate-500: oklch(55.4% 0.046 223.417);
+  --color-slate-600: oklch(44.6% 0.043 223.281);
+  --color-slate-700: oklch(37.2% 0.044 223.287);
+  --color-slate-800: oklch(27.9% 0.041 226.031);
+  --color-slate-900: oklch(20.8% 0.042 231.755);
+  --color-slate-950: oklch(12.9% 0.042 230.695);
+
+  --color-indigo-50: oklch(96.2% 0.018 217.314);
+  --color-indigo-100: oklch(93% 0.034 217.788);
+  --color-indigo-200: oklch(87% 0.065 219.039);
+  --color-indigo-300: oklch(78.5% 0.115 219.713);
+  --color-indigo-400: oklch(67.3% 0.182 221.935);
+  --color-indigo-500: oklch(58.5% 0.233 222.117);
+  --color-indigo-600: oklch(51.1% 0.262 221.966);
+  --color-indigo-700: oklch(45.7% 0.24 222.023);
+  --color-indigo-800: oklch(39.8% 0.195 222.366);
+  --color-indigo-900: oklch(35.9% 0.144 223.697);
+  --color-indigo-950: oklch(25.7% 0.09 226.288);
+
+  --color-violet-50: oklch(96.9% 0.016 196.756);
+  --color-violet-100: oklch(94.3% 0.029 197.588);
+  --color-violet-200: oklch(89.4% 0.057 196.283);
+  --color-violet-300: oklch(81.1% 0.111 196.571);
+  --color-violet-400: oklch(70.2% 0.183 196.541);
+  --color-violet-500: oklch(60.6% 0.25 195.717);
+  --color-violet-600: oklch(54.1% 0.281 196.009);
+  --color-violet-700: oklch(49.1% 0.27 195.581);
+  --color-violet-800: oklch(43.2% 0.232 195.759);
+  --color-violet-900: oklch(38% 0.189 196.745);
+  --color-violet-950: oklch(28.3% 0.141 194.089);
 }
 
 /* Radius scale — a fixed convention, not a free choice per component:
@@ -21,29 +72,29 @@ body,
 }
 
 body {
-  background-color: oklch(0.14 0.012 265);
+  background-color: oklch(0.985 0.002 230);
   font-feature-settings: 'cv11', 'ss01', 'tnum';
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
-/* Ambient background — barely-there. A pure flat black reads dead; the
-   goal here is the faintest hint of depth, not a decorative aurora — the
-   whole point is that most people should never consciously notice it. */
+/* Ambient background — barely-there. A flat white page reads like paper
+   stock rather than a product; the goal is the faintest hint of depth, not
+   a decorative wash — most people should never consciously notice it. */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
   z-index: -1;
   background:
-    radial-gradient(ellipse 80rem 40rem at 15% -10%, oklch(0.45 0.14 275 / 0.1), transparent 60%),
-    radial-gradient(ellipse 60rem 40rem at 110% 10%, oklch(0.5 0.16 255 / 0.06), transparent 55%);
+    radial-gradient(ellipse 80rem 40rem at 15% -10%, oklch(0.6 0.12 222 / 0.07), transparent 60%),
+    radial-gradient(ellipse 60rem 40rem at 110% 10%, oklch(0.65 0.13 196 / 0.05), transparent 55%);
   pointer-events: none;
 }
 
 /* Scrollbars */
 * {
-  scrollbar-color: oklch(0.45 0.02 265 / 0.6) transparent;
+  scrollbar-color: oklch(0.75 0.02 231 / 0.9) transparent;
   scrollbar-width: thin;
 }
 *::-webkit-scrollbar {
@@ -54,13 +105,13 @@ body::before {
   background: transparent;
 }
 *::-webkit-scrollbar-thumb {
-  background: oklch(0.45 0.02 265 / 0.5);
+  background: oklch(0.78 0.015 231);
   border-radius: 999px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 *::-webkit-scrollbar-thumb:hover {
-  background: oklch(0.55 0.05 275 / 0.7);
+  background: oklch(0.66 0.03 222);
   background-clip: padding-box;
 }
 
@@ -68,25 +119,26 @@ body::before {
    browser default — kept well above WCAG's non-text 3:1 contrast floor
    against every surface color in the app. */
 :focus-visible {
-  outline: 2px solid oklch(0.65 0.19 275);
+  outline: 2px solid oklch(0.65 0.19 222);
   outline-offset: 2px;
   border-radius: 4px;
 }
 
 @layer components {
-  /* The "glass card" used for nearly every panel in the app — defined
-     once so every card gets richer depth (inset highlight + soft outer
-     shadow + backdrop blur) from a single source instead of a
-     34-times-repeated class string. */
+  /* The surface used for nearly every panel in the app — defined once so
+     every card gets identical depth from a single source instead of a
+     34-times-repeated class string. On a light ground, depth comes from a
+     hairline border plus a short, tight shadow; the dark theme's frosted
+     blur is deliberately gone, because white-on-white glass reads as mush
+     rather than as a raised surface. */
   .card {
     position: relative;
     border-radius: 1rem;
-    border: 1px solid oklch(1 0 0 / 0.08);
-    background-color: oklch(0.21 0.02 265 / 0.6);
-    backdrop-filter: blur(20px);
+    border: 1px solid oklch(0.9 0.008 231);
+    background-color: oklch(1 0 0);
     box-shadow:
-      inset 0 1px 0 0 oklch(1 0 0 / 0.05),
-      0 20px 40px -24px oklch(0 0 0 / 0.6);
+      0 1px 2px 0 oklch(0.45 0.03 231 / 0.05),
+      0 8px 24px -12px oklch(0.45 0.03 231 / 0.12);
   }
 
   .card-interactive {
@@ -97,10 +149,10 @@ body::before {
   }
   .card-interactive:hover {
     transform: translateY(-2px);
-    border-color: oklch(1 0 0 / 0.14);
+    border-color: oklch(0.84 0.015 225);
     box-shadow:
-      inset 0 1px 0 0 oklch(1 0 0 / 0.07),
-      0 24px 48px -20px oklch(0 0 0 / 0.7);
+      0 2px 4px 0 oklch(0.45 0.03 231 / 0.06),
+      0 16px 32px -12px oklch(0.45 0.03 231 / 0.18);
   }
 
   /* Primary CTA — a restrained gradient fill (not a flat color, not a
@@ -109,7 +161,7 @@ body::before {
      button; reserved instead for the one or two true hero elements per
      screen (the logo mark, the live bus marker). */
   .btn-primary {
-    background-image: linear-gradient(135deg, oklch(0.58 0.19 275), oklch(0.52 0.22 293));
+    background-image: linear-gradient(135deg, oklch(0.58 0.19 222), oklch(0.52 0.22 196));
     color: white;
     box-shadow: 0 1px 0 0 oklch(1 0 0 / 0.15) inset;
     transition: filter 0.15s ease, transform 0.1s ease;
@@ -152,22 +204,78 @@ body::before {
     filter: brightness(0.95);
   }
 
-  /* Text inputs, selects, and textareas — a soft glass field instead of a
-     flat bordered box, with a glowing indigo ring on focus. Used for
-     every form control in the app. */
+  /* Text inputs, selects, and textareas. On a light ground the field has to
+     sit *under* the card surface to read as an input at all, so it is a
+     faintly recessed fill with a real border — not the dark theme's
+     lightening overlay, which would vanish against white. Used for every
+     form control in the app. */
   .input {
     border-radius: 0.5rem;
-    border: 1px solid oklch(1 0 0 / 0.1);
-    background-color: oklch(1 0 0 / 0.04);
+    border: 1px solid oklch(0.88 0.01 231);
+    background-color: oklch(0.985 0.002 230);
+    color: oklch(0.208 0.042 231.755);
     transition:
       border-color 0.15s ease,
       background-color 0.15s ease,
       box-shadow 0.15s ease;
   }
+  .input::placeholder {
+    color: oklch(0.65 0.03 223);
+  }
   .input:focus {
     outline: none;
-    border-color: oklch(0.65 0.19 275 / 0.7);
-    background-color: oklch(1 0 0 / 0.06);
-    box-shadow: 0 0 0 3px oklch(0.6 0.19 275 / 0.15);
+    border-color: oklch(0.585 0.233 222);
+    background-color: oklch(1 0 0);
+    box-shadow: 0 0 0 3px oklch(0.585 0.233 222 / 0.16);
+  }
+
+  /* Live bus marker on the fleet map. The emoji is the marker; the white
+     pill behind it is what keeps it readable over arbitrary map tiles. This
+     is one of the few places a glow is justified — it is the hero element
+     of the screen, and it has to be findable at a glance among streets. */
+  .cmis-bus-pin {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    transform: translate(-50%, -50%);
+    padding: 0.125rem 0.5rem 0.125rem 0.25rem;
+    border-radius: 999px;
+    border: 1px solid oklch(0.585 0.233 222 / 0.45);
+    background-color: oklch(1 0 0 / 0.95);
+    box-shadow:
+      0 1px 2px oklch(0.45 0.03 231 / 0.15),
+      0 6px 16px -6px oklch(0.585 0.233 222 / 0.5);
+    white-space: nowrap;
+  }
+  .cmis-bus-emoji {
+    font-size: 1rem;
+    line-height: 1;
+  }
+  .cmis-bus-label {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: oklch(0.208 0.042 231.755);
+  }
+
+  /* Route stop marker — a plain dot, deliberately quieter than the bus pin
+     so the live vehicle stays the thing the eye finds first. */
+  .cmis-stop-dot {
+    display: block;
+    width: 0.625rem;
+    height: 0.625rem;
+    transform: translate(-50%, -50%);
+    border-radius: 999px;
+    border: 2px solid oklch(1 0 0);
+    box-shadow: 0 1px 3px oklch(0.45 0.03 231 / 0.4);
+  }
+
+  .cmis-pop-title {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: oklch(0.208 0.042 231.755);
+  }
+  .cmis-pop-row {
+    font-size: 0.75rem;
+    color: oklch(0.446 0.043 223.281);
   }
 }

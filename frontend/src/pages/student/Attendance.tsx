@@ -34,20 +34,20 @@ export default function Attendance() {
   return (
     <div>
       <div className="mb-5 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-slate-100">Attendance</h1>
+        <h1 className="text-xl font-semibold text-slate-900">Attendance</h1>
         <div className="flex items-center gap-2">
           <button
             onClick={() => shiftMonth(-1)}
             aria-label="Previous month"
-            className="rounded-lg border border-slate-700 p-1.5 text-slate-300 hover:bg-slate-800"
+            className="rounded-lg border border-slate-300 p-1.5 text-slate-700 hover:bg-slate-200"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
-          <span className="w-40 text-center text-sm text-slate-300">{monthLabel(month)}</span>
+          <span className="w-40 text-center text-sm text-slate-700">{monthLabel(month)}</span>
           <button
             onClick={() => shiftMonth(1)}
             aria-label="Next month"
-            className="rounded-lg border border-slate-700 p-1.5 text-slate-300 hover:bg-slate-800"
+            className="rounded-lg border border-slate-300 p-1.5 text-slate-700 hover:bg-slate-200"
           >
             <ChevronRight className="h-4 w-4" />
           </button>
@@ -56,20 +56,20 @@ export default function Attendance() {
 
       {isLoading ? (
         <div className="flex justify-center py-10">
-          <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
+          <Loader2 className="h-5 w-5 animate-spin text-slate-600" />
         </div>
       ) : grouped.length === 0 ? (
-        <p className="text-sm text-slate-400">No boarding records for this month.</p>
+        <p className="text-sm text-slate-600">No boarding records for this month.</p>
       ) : (
         <div className="space-y-2">
           {grouped.map(([date, records]) => (
             <div
               key={date}
-              className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-3"
+              className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-100/60 px-4 py-3"
             >
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                <span className="text-sm text-slate-200">
+                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                <span className="text-sm text-slate-800">
                   {new Date(date).toLocaleDateString(undefined, {
                     weekday: 'short',
                     month: 'short',
@@ -77,7 +77,7 @@ export default function Attendance() {
                   })}
                 </span>
               </div>
-              <span className="text-sm text-slate-400">
+              <span className="text-sm text-slate-600">
                 {records?.[0] && new Date(records[0].boardingTime).toLocaleTimeString()}
               </span>
             </div>
@@ -85,7 +85,7 @@ export default function Attendance() {
         </div>
       )}
 
-      <p className="mt-4 text-sm text-slate-400">
+      <p className="mt-4 text-sm text-slate-600">
         {grouped.length} day{grouped.length === 1 ? '' : 's'} boarded in {monthLabel(month)}.
       </p>
     </div>

@@ -21,7 +21,7 @@ function Logo({ roleLabel }: { roleLabel: string }) {
       </div>
       <div>
         <p className="text-sm font-semibold leading-tight tracking-tight">CMIS</p>
-        <p className="text-xs leading-tight text-slate-400">{roleLabel}</p>
+        <p className="text-xs leading-tight text-slate-600">{roleLabel}</p>
       </div>
     </div>
   )
@@ -39,13 +39,13 @@ export default function AppShell({
   const [navOpen, setNavOpen] = useState(false)
 
   return (
-    <div className="flex min-h-full flex-col text-slate-100 md:flex-row">
-      <div className="flex items-center justify-between border-b border-white/[0.06] bg-slate-950/70 px-4 py-3 backdrop-blur-xl md:hidden">
+    <div className="flex min-h-full flex-col text-slate-900 md:flex-row">
+      <div className="flex items-center justify-between border-b border-black/[0.07] bg-slate-50 px-4 py-3 backdrop-blur-xl md:hidden">
         <Logo roleLabel={roleLabel} />
         <button
           onClick={() => setNavOpen(true)}
           aria-label="Open navigation menu"
-          className="rounded-lg p-2 text-slate-300 hover:bg-white/5"
+          className="rounded-lg p-2 text-slate-700 hover:bg-black/5"
         >
           <Menu className="h-5 w-5" />
         </button>
@@ -60,16 +60,16 @@ export default function AppShell({
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 -translate-x-full flex-col border-r border-white/[0.06] bg-slate-950/95 backdrop-blur-xl transition-transform duration-200 md:static md:z-auto md:w-60 md:translate-x-0 md:bg-slate-950/40 ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 -translate-x-full flex-col border-r border-black/[0.07] bg-slate-50 backdrop-blur-xl transition-transform duration-200 md:static md:z-auto md:w-60 md:translate-x-0 md:bg-slate-50 ${
           navOpen ? 'translate-x-0' : ''
         }`}
       >
-        <div className="flex items-center justify-between gap-2 border-b border-white/[0.06] px-5 py-4">
+        <div className="flex items-center justify-between gap-2 border-b border-black/[0.07] px-5 py-4">
           <Logo roleLabel={roleLabel} />
           <button
             onClick={() => setNavOpen(false)}
             aria-label="Close navigation menu"
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-white/5 md:hidden"
+            className="rounded-lg p-1.5 text-slate-600 hover:bg-black/5 md:hidden"
           >
             <X className="h-4 w-4" />
           </button>
@@ -85,8 +85,8 @@ export default function AppShell({
               className={({ isActive }) =>
                 `group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
                   isActive
-                    ? 'bg-gradient-to-r from-indigo-500/15 to-violet-500/5 text-indigo-300'
-                    : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'
+                    ? 'bg-gradient-to-r from-indigo-500/15 to-violet-500/5 text-indigo-700'
+                    : 'text-slate-600 hover:bg-black/5 hover:text-slate-800'
                 }`
               }
             >
@@ -112,13 +112,13 @@ export default function AppShell({
           ))}
         </nav>
 
-        <div className="border-t border-white/[0.06] p-3">
-          <div className="mb-2 truncate px-2 text-xs text-slate-400">
+        <div className="border-t border-black/[0.07] p-3">
+          <div className="mb-2 truncate px-2 text-xs text-slate-600">
             {user?.email}
           </div>
           <button
             onClick={() => logout()}
-            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-400 transition hover:bg-white/5 hover:text-red-400"
+            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-600 transition hover:bg-black/5 hover:text-red-600"
           >
             <LogOut className="h-4 w-4" />
             Sign out
