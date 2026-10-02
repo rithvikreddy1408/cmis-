@@ -3,9 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { ArrowLeft, Loader2, MapPin, Trash2, GripVertical, Save } from 'lucide-react'
-import MapContainer from '../../components/maps/MapContainer'
-import StopMarker from '../../components/maps/StopMarker'
-import RoutePolyline from '../../components/maps/RoutePolyline'
+import FleetMap from '../../components/maps/FleetMap'
 import { TextField } from '../../components/ui/FormField'
 import Banner from '../../components/ui/Banner'
 import { routesApi } from '../../services/routes.api'
@@ -332,16 +330,20 @@ export default function RouteBuilder() {
       </div>
 
       <div className="flex-1 overflow-hidden rounded-2xl">
-        <MapContainer center={mapCenter} onClick={handleMapClick}>
-          {startLocation && <StopMarker position={startLocation} label="Start" color="#10b981" />}
-          {destinationLocation && (
-            <StopMarker position={destinationLocation} label="Destination" color="#ef4444" />
-          )}
-          {sortedStops.map((stop, i) => (
-            <StopMarker key={i} position={{ lat: stop.lat, lng: stop.lng }} label={stop.name} />
-          ))}
-          {polyline && <RoutePolyline encodedPath={polyline} />}
-        </MapContainer>
+        <FleetMap
+          center={mapCenter}
+          buses={[]}
+          stops={[
+            ...(startLocation ? [{ name: 'Start', ...startLocation, kind: 'start' as const }] : []),
+            ...sortedStops.map((s) => ({ name: s.name, lat: s.lat, lng: s.lng, kind: 'stop' as const })),
+            ...(destinationLocation
+              ? [{ name: 'Destination', ...destinationLocation, kind: 'end' as const }]
+              : []),
+          ]}
+          encodedPolyline={polyline}
+          onMapClick={handleMapClick}
+          emptyMessage="Click anywhere on the map to add a stop."
+        />
       </div>
     </motion.div>
   )

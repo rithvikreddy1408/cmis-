@@ -73,6 +73,7 @@ export default function FleetMap({
   onSelect,
   stops,
   encodedPolyline,
+  onMapClick,
   emptyMessage = 'No buses are reporting a live position right now. Markers appear here once a driver starts a trip.',
 }: {
   buses: FleetBus[]
@@ -82,6 +83,7 @@ export default function FleetMap({
   stops?: FleetStop[]
   encodedPolyline?: string | null
   emptyMessage?: string
+  onMapClick?: (lat: number, lng: number) => void
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<L.Map | null>(null)
@@ -110,6 +112,20 @@ export default function FleetMap({
     }
     // Center/zoom are the initial camera only — deliberately not reactive.
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Click-to-place, used by the Route Builder to drop stops. Kept in its own
+  // effect with the latest handler so the map is never torn down to rebind it.
+  const clickRef = useRef(onMapClick)
+  clickRef.current = onMapClick
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    const handler = (e: L.LeafletMouseEvent) => clickRef.current?.(e.latlng.lat, e.latlng.lng)
+    map.on('click', handler)
+    return () => {
+      map.off('click', handler)
+    }
   }, [])
 
   // The route (path + stops) is static relative to the live bus markers, so
