@@ -29,6 +29,7 @@ export default function RouteBuilder() {
   const [polyline, setPolyline] = useState<string | null>(null)
   const [mapCenter, setMapCenter] = useState<LatLng>(DEFAULT_CENTER)
   const [banner, setBanner] = useState<{ kind: 'success' | 'error'; message: string } | null>(null)
+  const [placing, setPlacing] = useState<'start' | 'stop' | 'end'>('stop')
   const [geocodingStart, setGeocodingStart] = useState(false)
   const [geocodingDest, setGeocodingDest] = useState(false)
   const [previewing, setPreviewing] = useState(false)
@@ -88,7 +89,24 @@ export default function RouteBuilder() {
     }
   }
 
+  // Typing a place name and geocoding it is a guess — "kothapet" resolves to
+  // whichever feature the gazetteer ranks first, which is rarely the exact
+  // junction a bus actually halts at. Clicking the map is the authoritative
+  // way to place a point, so the click target is selectable rather than
+  // hard-wired to "add a stop".
   function handleMapClick(lat: number, lng: number) {
+    if (placing === 'start') {
+      setStartLocation({ lat, lng })
+      setPlacing('stop')
+      notify('success', 'Start point placed. Clicks now add stops.')
+      return
+    }
+    if (placing === 'end') {
+      setDestinationLocation({ lat, lng })
+      setPlacing('stop')
+      notify('success', 'Destination placed. Clicks now add stops.')
+      return
+    }
     setStops((prev) => [...prev, { name: `Stop ${prev.length + 1}`, lat, lng, order: prev.length }])
   }
 
@@ -195,7 +213,7 @@ export default function RouteBuilder() {
                   label="Start Point"
                   value={startPoint}
                   onChange={(e) => setStartPoint(e.target.value)}
-                  placeholder="e.g. Main Gate, Campus"
+                  placeholder="Name students will see, e.g. Kothapet"
                 />
               </div>
               <button
@@ -225,7 +243,7 @@ export default function RouteBuilder() {
                   label="Destination"
                   value={destination}
                   onChange={(e) => setDestination(e.target.value)}
-                  placeholder="e.g. Tech Park"
+                  placeholder="Name students will see, e.g. Sreyas College"
                 />
               </div>
               <button
@@ -249,9 +267,37 @@ export default function RouteBuilder() {
           </div>
 
           <div>
+            <p className="mb-1.5 text-sm text-slate-700">Place on map by clicking</p>
+            <div className="mb-3 grid grid-cols-3 gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1">
+              {(
+                [
+                  ['start', 'Start', '#059669'],
+                  ['stop', 'Stop', '#0091dc'],
+                  ['end', 'End', '#dc2626'],
+                ] as const
+              ).map(([mode, label, color]) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => setPlacing(mode)}
+                  aria-pressed={placing === mode}
+                  className={`flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium transition ${
+                    placing === mode
+                      ? 'bg-white text-slate-900 shadow-sm'
+                      : 'text-slate-600 hover:text-slate-800'
+                  }`}
+                >
+                  <span className="h-2 w-2 rounded-full" style={{ background: color }} />
+                  {label}
+                </button>
+              ))}
+            </div>
+
             <div className="mb-2 flex items-center justify-between">
               <p className="text-sm text-slate-700">Stops ({sortedStops.length})</p>
-              <span className="text-xs text-slate-600">Click the map to add</span>
+              <span className="text-xs text-slate-600">
+                {placing === 'stop' ? 'Click map to add a stop' : `Click map to set ${placing === 'start' ? 'start' : 'destination'}`}
+              </span>
             </div>
             <div className="space-y-2">
               {sortedStops.map((stop, i) => (
@@ -342,7 +388,13 @@ export default function RouteBuilder() {
           ]}
           encodedPolyline={polyline}
           onMapClick={handleMapClick}
-          emptyMessage="Click anywhere on the map to add a stop."
+          emptyMessage={
+            placing === 'start'
+              ? 'Click the exact start point on the map.'
+              : placing === 'end'
+                ? 'Click the exact destination on the map.'
+                : 'Click the map to drop a stop — switch above to place the start or destination.'
+          }
         />
       </div>
     </motion.div>
