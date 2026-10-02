@@ -21,3 +21,6 @@ frontend/playwright-report/
 
 # Firestore backups — real student/driver PII, never belongs in the repo
 backend/backups/
+
+# Firebase CLI deploy cache
+.firebase/

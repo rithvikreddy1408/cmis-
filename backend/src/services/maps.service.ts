@@ -1,4 +1,8 @@
 import { HttpError } from '../middleware/errorHandler.js'
+import {
+  geocodeAddressOpen,
+  getDirectionsOpen,
+} from './openMaps.service.js'
 
 const CACHE_TTL_MS = 30_000
 const cache = new Map<string, { data: unknown; expiresAt: number }>()
@@ -15,6 +19,10 @@ function getCached<T>(key: string): T | null {
 
 function setCached(key: string, data: unknown) {
   cache.set(key, { data, expiresAt: Date.now() + CACHE_TTL_MS })
+}
+
+function hasServerKey(): boolean {
+  return Boolean(process.env.GOOGLE_MAPS_SERVER_KEY)
 }
 
 function getServerKey(): string {
@@ -39,6 +47,12 @@ export async function geocodeAddress(address: string): Promise<GeocodeResult> {
   const cacheKey = `geocode:${address}`
   const cached = getCached<GeocodeResult>(cacheKey)
   if (cached) return cached
+
+  if (!hasServerKey()) {
+    const open = await geocodeAddressOpen(address)
+    setCached(cacheKey, open)
+    return open
+  }
 
   const url = new URL('https://maps.googleapis.com/maps/api/geocode/json')
   url.searchParams.set('address', address)
@@ -77,6 +91,12 @@ export async function getDirections(
   const cacheKey = `directions:${origin}|${destination}|${waypoints.join('|')}`
   const cached = getCached<DirectionsResult>(cacheKey)
   if (cached) return cached
+
+  if (!hasServerKey()) {
+    const open = await getDirectionsOpen(origin, destination, waypoints)
+    setCached(cacheKey, open)
+    return open
+  }
 
   const url = new URL('https://maps.googleapis.com/maps/api/directions/json')
   url.searchParams.set('origin', origin)
