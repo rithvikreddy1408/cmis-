@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Loader2, TriangleAlert, Gauge, Navigation2 } from 'lucide-react'
 import FleetMap, { type FleetStop } from '../../components/maps/FleetMap'
 import { SERVICE_AREA_CENTER } from '../../utils/mapDefaults'
+import { navigateToPointUrl } from '../../utils/navigation'
 import { studentsApi } from '../../services/students.api'
 import { busesApi } from '../../services/buses.api'
 import { routesApi } from '../../services/routes.api'
@@ -135,20 +136,37 @@ export default function Track() {
           </>
         )}
 
-        {route && route.stops.length > 0 && (
+        {mapStops.length > 0 && (
           <div>
-            <p className="mb-2 text-sm text-slate-700">Stops</p>
+            <p className="mb-2 text-sm text-slate-700">
+              Stops <span className="text-slate-500">— tap one for directions</span>
+            </p>
             <div className="space-y-1.5">
-              {[...route.stops]
-                .sort((a, b) => a.order - b.order)
-                .map((stop, i) => (
-                  <div
-                    key={i}
-                    className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm text-slate-700"
-                  >
-                    {stop.name}
-                  </div>
-                ))}
+              {mapStops.map((stop, i) => (
+                <a
+                  key={i}
+                  href={navigateToPointUrl(stop)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 transition hover:border-indigo-300 hover:bg-indigo-50"
+                >
+                  <span className="flex min-w-0 items-center gap-2">
+                    <span
+                      className="h-2 w-2 shrink-0 rounded-full"
+                      style={{
+                        background:
+                          stop.kind === 'start'
+                            ? '#059669'
+                            : stop.kind === 'end'
+                              ? '#dc2626'
+                              : '#0091dc',
+                      }}
+                    />
+                    <span className="truncate">{stop.name}</span>
+                  </span>
+                  <Navigation2 className="h-3.5 w-3.5 shrink-0 text-indigo-600" />
+                </a>
+              ))}
             </div>
           </div>
         )}

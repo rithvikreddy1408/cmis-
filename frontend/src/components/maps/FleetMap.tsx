@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { decodePolyline } from '../../utils/polyline'
+import { navigateToPointUrl } from '../../utils/navigation'
 
 export interface FleetBus {
   busId: string
@@ -28,12 +29,27 @@ export interface FleetStop {
 const TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
 const TILE_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 
+// Bus numbers, statuses and stop names are admin-entered free text that ends
+// up inside marker and popup HTML, so every interpolation is escaped. Leaflet
+// takes HTML strings here, not nodes, so there is no framework escaping to
+// lean on.
+const ESCAPES: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+}
+function esc(value: string): string {
+  return value.replace(/[&<>"']/g, (c) => ESCAPES[c])
+}
+
 function busIcon(bus: FleetBus) {
   // A div icon rather than an image marker: the emoji is the marker, sitting
   // on a white pill so it stays legible over any tile underneath.
   return L.divIcon({
     className: 'cmis-bus-marker',
-    html: `<div class="cmis-bus-pin"><span class="cmis-bus-emoji">🚌</span><span class="cmis-bus-label">${bus.busNumber}</span></div>`,
+    html: `<div class="cmis-bus-pin"><span class="cmis-bus-emoji">🚌</span><span class="cmis-bus-label">${esc(bus.busNumber)}</span></div>`,
     iconSize: [0, 0],
     iconAnchor: [0, 0],
   })
@@ -63,7 +79,7 @@ function popupHtml(bus: FleetBus) {
   const seen = bus.updatedAt
     ? `<div class="cmis-pop-row">Last ping ${new Date(bus.updatedAt).toLocaleTimeString()}</div>`
     : ''
-  return `<div class="cmis-pop"><div class="cmis-pop-title">🚌 ${bus.busNumber}</div><div class="cmis-pop-row">Status <b>${bus.status}</b></div>${occupancy}${seen}</div>`
+  return `<div class="cmis-pop"><div class="cmis-pop-title">🚌 ${esc(bus.busNumber)}</div><div class="cmis-pop-row">Status <b>${esc(bus.status)}</b></div>${occupancy}${seen}</div>`
 }
 
 export default function FleetMap({
@@ -149,7 +165,10 @@ export default function FleetMap({
     for (const stop of stops ?? []) {
       L.marker([stop.lat, stop.lng], { icon: stopIcon(stop) })
         .addTo(layer)
-        .bindPopup(`<div class="cmis-pop"><div class="cmis-pop-title">${stop.name}</div></div>`)
+        .bindPopup(
+          `<div class="cmis-pop"><div class="cmis-pop-title">${esc(stop.name)}</div>` +
+            `<a class="cmis-pop-nav" href="${navigateToPointUrl(stop)}" target="_blank" rel="noreferrer">Directions to here →</a></div>`,
+        )
     }
 
     // Frame the route when there is no live bus to frame instead.
