@@ -1,8 +1,5 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import jsPDF from 'jspdf'
-import autoTable from 'jspdf-autotable'
-import * as XLSX from 'xlsx'
 import { Download, FileText, Loader2 } from 'lucide-react'
 import { TextField, SelectField } from '../../components/ui/FormField'
 import StudentPicker from '../../components/ui/StudentPicker'
@@ -20,7 +17,14 @@ function defaultRange() {
   return { startDate: start.toISOString().slice(0, 10), endDate: end.toISOString().slice(0, 10) }
 }
 
-function exportPdf(title: string, head: string[], rows: (string | number)[][]) {
+// jsPDF and SheetJS are ~400kB of the chunk this page would otherwise ship
+// before rendering a single row. Loaded on click instead, so the report data
+// paints immediately and the export toolchain only downloads if it is used.
+async function exportPdf(title: string, head: string[], rows: (string | number)[][]) {
+  const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+    import('jspdf'),
+    import('jspdf-autotable'),
+  ])
   const doc = new jsPDF()
   doc.setFontSize(14)
   doc.text('CMIS — ' + title, 14, 16)
@@ -30,7 +34,8 @@ function exportPdf(title: string, head: string[], rows: (string | number)[][]) {
   doc.save(`${title.toLowerCase().replace(/\s+/g, '-')}.pdf`)
 }
 
-function exportExcel<T extends object>(title: string, rows: T[]) {
+async function exportExcel<T extends object>(title: string, rows: T[]) {
+  const XLSX = await import('xlsx')
   const sheet = XLSX.utils.json_to_sheet(rows)
   const workbook = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(workbook, sheet, title.slice(0, 30))
@@ -48,17 +53,17 @@ export default function Reports() {
 
   return (
     <div>
-      <h1 className="mb-5 text-xl font-semibold text-slate-100">Reports</h1>
+      <h1 className="mb-5 text-xl font-semibold text-slate-900">Reports</h1>
 
-      <div className="mb-5 flex gap-2 border-b border-slate-800">
+      <div className="mb-5 flex gap-2 border-b border-slate-200">
         {tabs.map(({ id, label }) => (
           <button
             key={id}
             onClick={() => setTab(id)}
             className={`border-b-2 px-4 py-2 text-sm transition ${
               tab === id
-                ? 'border-indigo-500 text-indigo-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-indigo-500 text-indigo-600'
+                : 'border-transparent text-slate-600 hover:text-slate-800'
             }`}
           >
             {label}
@@ -133,13 +138,13 @@ function AttendanceTab() {
                   ]),
                 )
               }
-              className="flex items-center gap-1.5 rounded-lg border border-slate-700 px-3 py-2 text-sm text-slate-300 hover:bg-slate-800"
+              className="flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-200"
             >
               <FileText className="h-4 w-4" /> PDF
             </button>
             <button
               onClick={() => exportExcel('Attendance Report', data)}
-              className="flex items-center gap-1.5 rounded-lg border border-slate-700 px-3 py-2 text-sm text-slate-300 hover:bg-slate-800"
+              className="flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-200"
             >
               <Download className="h-4 w-4" /> Excel
             </button>
@@ -150,7 +155,7 @@ function AttendanceTab() {
       <div className="overflow-hidden card">
         <table className="w-full text-left text-sm">
           <thead>
-            <tr className="border-b border-slate-800 text-xs uppercase tracking-wide text-slate-400">
+            <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-600">
               <th className="px-4 py-3">Date</th>
               <th className="px-4 py-3">Time</th>
               <th className="px-4 py-3">Student</th>
@@ -162,19 +167,19 @@ function AttendanceTab() {
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-slate-400">
+                <td colSpan={6} className="px-4 py-8 text-center text-slate-600">
                   Loading…
                 </td>
               </tr>
             ) : !data?.length ? (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-slate-400">
+                <td colSpan={6} className="px-4 py-8 text-center text-slate-600">
                   No records in this range.
                 </td>
               </tr>
             ) : (
               data.map((r, i) => (
-                <tr key={i} className="border-b border-slate-800/60 text-slate-300 last:border-0">
+                <tr key={i} className="border-b border-slate-200/60 text-slate-700 last:border-0">
                   <td className="px-4 py-3">{r.date}</td>
                   <td className="px-4 py-3">{new Date(r.boardingTime).toLocaleTimeString()}</td>
                   <td className="px-4 py-3">{r.studentName}</td>
@@ -214,12 +219,12 @@ function StudentTab() {
 
       {data && (
         <div className="card p-5">
-          <h3 className="mb-2 font-semibold text-slate-100">
+          <h3 className="mb-2 font-semibold text-slate-900">
             {data.studentName} ({data.rollNumber})
           </h3>
-          <p className="text-sm text-slate-400">Days boarded: {data.daysBoarded}</p>
-          <p className="text-sm text-slate-400">Bus active days: {data.busActiveDays}</p>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-slate-600">Days boarded: {data.daysBoarded}</p>
+          <p className="text-sm text-slate-600">Bus active days: {data.busActiveDays}</p>
+          <p className="text-sm text-slate-600">
             Attendance: {data.attendancePercent != null ? `${data.attendancePercent}%` : 'n/a'}
           </p>
           <div className="mt-4 flex gap-2">
@@ -236,13 +241,13 @@ function StudentTab() {
                   ]),
                 )
               }
-              className="flex items-center gap-1.5 rounded-lg border border-slate-700 px-3 py-2 text-sm text-slate-300 hover:bg-slate-800"
+              className="flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-200"
             >
               <FileText className="h-4 w-4" /> PDF
             </button>
             <button
               onClick={() => exportExcel(`Student Report ${data.rollNumber}`, data.records)}
-              className="flex items-center gap-1.5 rounded-lg border border-slate-700 px-3 py-2 text-sm text-slate-300 hover:bg-slate-800"
+              className="flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-200"
             >
               <Download className="h-4 w-4" /> Excel
             </button>
@@ -284,10 +289,10 @@ function BusTab() {
 
       {data && (
         <div className="card p-5">
-          <h3 className="mb-2 font-semibold text-slate-100">{data.busNumber}</h3>
-          <p className="text-sm text-slate-400">Trips: {data.tripCount}</p>
-          <p className="text-sm text-slate-400">Total distance: {data.totalDistanceKm} km</p>
-          <p className="text-sm text-slate-400">Avg peak occupancy: {data.avgPeakOccupancy}</p>
+          <h3 className="mb-2 font-semibold text-slate-900">{data.busNumber}</h3>
+          <p className="text-sm text-slate-600">Trips: {data.tripCount}</p>
+          <p className="text-sm text-slate-600">Total distance: {data.totalDistanceKm} km</p>
+          <p className="text-sm text-slate-600">Avg peak occupancy: {data.avgPeakOccupancy}</p>
         </div>
       )}
     </div>
@@ -328,10 +333,10 @@ function DriverTab() {
 
       {data && (
         <div className="card p-5">
-          <h3 className="mb-2 font-semibold text-slate-100">{data.driverName}</h3>
-          <p className="text-sm text-slate-400">Trips: {data.tripCount}</p>
-          <p className="text-sm text-slate-400">Driving hours: {data.totalDrivingHours}</p>
-          <p className="text-sm text-slate-400">Total distance: {data.totalDistanceKm} km</p>
+          <h3 className="mb-2 font-semibold text-slate-900">{data.driverName}</h3>
+          <p className="text-sm text-slate-600">Trips: {data.tripCount}</p>
+          <p className="text-sm text-slate-600">Driving hours: {data.totalDrivingHours}</p>
+          <p className="text-sm text-slate-600">Total distance: {data.totalDistanceKm} km</p>
         </div>
       )}
     </div>

@@ -25,11 +25,11 @@ export default class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.error) {
       return (
-        <div className="flex min-h-full items-center justify-center p-6 text-slate-100">
-          <div className="max-w-md rounded-2xl border border-red-900 bg-red-950/20 p-6 text-center">
-            <TriangleAlert className="mx-auto mb-3 h-8 w-8 text-red-400" />
+        <div className="flex min-h-full items-center justify-center p-6 text-slate-900">
+          <div className="max-w-md rounded-2xl border border-red-200 bg-red-50 p-6 text-center">
+            <TriangleAlert className="mx-auto mb-3 h-8 w-8 text-red-600" />
             <h1 className="mb-1 text-lg font-semibold">Something went wrong</h1>
-            <p className="mb-4 text-sm text-slate-400">
+            <p className="mb-4 text-sm text-slate-600">
               This screen hit an unexpected error. Reloading usually fixes it.
             </p>
             <button

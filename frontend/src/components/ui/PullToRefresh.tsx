@@ -65,10 +65,10 @@ export default function PullToRefresh({
         className="pointer-events-none absolute left-1/2 top-0 z-10 -translate-x-1/2 md:hidden"
       >
         {refreshing ? (
-          <Loader2 className="h-5 w-5 animate-spin text-indigo-400" />
+          <Loader2 className="h-5 w-5 animate-spin text-indigo-600" />
         ) : (
           <motion.div style={{ rotate }}>
-            <ArrowDown className="h-5 w-5 text-slate-400" />
+            <ArrowDown className="h-5 w-5 text-slate-600" />
           </motion.div>
         )}
       </motion.div>

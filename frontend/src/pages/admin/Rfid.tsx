@@ -25,17 +25,17 @@ export default function Rfid() {
 
   return (
     <div>
-      <h1 className="mb-5 text-xl font-semibold text-slate-100">RFID Management</h1>
+      <h1 className="mb-5 text-xl font-semibold text-slate-900">RFID Management</h1>
 
-      <div className="mb-5 flex gap-2 border-b border-slate-800">
+      <div className="mb-5 flex gap-2 border-b border-slate-200">
         {tabs.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             onClick={() => setTab(id)}
             className={`flex items-center gap-1.5 border-b-2 px-4 py-2 text-sm transition ${
               tab === id
-                ? 'border-indigo-500 text-indigo-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-indigo-500 text-indigo-600'
+                : 'border-transparent text-slate-600 hover:text-slate-800'
             }`}
           >
             <Icon className="h-4 w-4" />
@@ -98,7 +98,7 @@ function DevicesTab() {
       <div className="overflow-hidden card">
         <table className="w-full text-left text-sm">
           <thead>
-            <tr className="border-b border-slate-800 text-xs uppercase tracking-wide text-slate-400">
+            <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-600">
               <th className="px-4 py-3">Device ID</th>
               <th className="px-4 py-3">Bus</th>
               <th className="px-4 py-3">Last Seen</th>
@@ -110,19 +110,19 @@ function DevicesTab() {
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan={4} className="px-4 py-8 text-center text-slate-400">
+                <td colSpan={4} className="px-4 py-8 text-center text-slate-600">
                   Loading…
                 </td>
               </tr>
             ) : !devices?.length ? (
               <tr>
-                <td colSpan={4} className="px-4 py-8 text-center text-slate-400">
+                <td colSpan={4} className="px-4 py-8 text-center text-slate-600">
                   No devices provisioned yet.
                 </td>
               </tr>
             ) : (
               devices.map((d) => (
-                <tr key={d.deviceId} className="border-b border-slate-800/60 text-slate-300 last:border-0">
+                <tr key={d.deviceId} className="border-b border-slate-200/60 text-slate-700 last:border-0">
                   <td className="px-4 py-3 font-mono text-xs">{d.deviceId}</td>
                   <td className="px-4 py-3">{busNumber(d.busId)}</td>
                   <td className="px-4 py-3">
@@ -131,7 +131,7 @@ function DevicesTab() {
                   <td className="px-4 py-3 text-right">
                     <button
                       onClick={() => setRevoking(d.deviceId)}
-                      className="rounded-lg px-2 py-1 text-xs text-red-400 hover:bg-slate-800"
+                      className="rounded-lg px-2 py-1 text-xs text-red-600 hover:bg-slate-200"
                     >
                       Revoke
                     </button>
@@ -157,7 +157,7 @@ function DevicesTab() {
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setProvisioning(false)}
-                className="rounded-lg px-4 py-2 text-sm text-slate-300 hover:bg-slate-800"
+                className="rounded-lg px-4 py-2 text-sm text-slate-700 hover:bg-slate-200"
               >
                 Cancel
               </button>
@@ -202,26 +202,26 @@ function DeviceKeyModal({
   return (
     <Modal title="Device provisioned" onClose={onClose}>
       <div className="space-y-3">
-        <div className="flex items-center gap-2 rounded-lg border border-amber-900 bg-amber-950/30 px-3 py-2 text-sm text-amber-400">
+        <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-600">
           <KeyRound className="h-4 w-4 shrink-0" />
           This key is shown once. Copy it into the reader's firmware config now.
         </div>
         <div>
-          <p className="mb-1 text-xs text-slate-400">Device ID</p>
-          <code className="block rounded-lg bg-slate-950 p-2 text-xs text-slate-300">{deviceId}</code>
+          <p className="mb-1 text-xs text-slate-600">Device ID</p>
+          <code className="block rounded-lg bg-slate-50 p-2 text-xs text-slate-700">{deviceId}</code>
         </div>
         <div>
-          <p className="mb-1 text-xs text-slate-400">Device Key</p>
+          <p className="mb-1 text-xs text-slate-600">Device Key</p>
           <div className="flex gap-2">
-            <code className="flex-1 rounded-lg bg-slate-950 p-2 text-xs text-slate-300">{rawKey}</code>
+            <code className="flex-1 rounded-lg bg-slate-50 p-2 text-xs text-slate-700">{rawKey}</code>
             <button
               onClick={() => {
                 navigator.clipboard.writeText(rawKey)
                 setCopied(true)
               }}
-              className="rounded-lg border border-slate-700 px-3 text-slate-300 hover:bg-slate-800"
+              className="rounded-lg border border-slate-300 px-3 text-slate-700 hover:bg-slate-200"
             >
-              {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+              {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
             </button>
           </div>
         </div>
@@ -301,8 +301,8 @@ function CardsTab() {
       {selected && (
         <div className="space-y-4 card p-5">
           <div>
-            <p className="mb-1 text-sm text-slate-400">Current card</p>
-            <p className="font-mono text-sm text-slate-200">
+            <p className="mb-1 text-sm text-slate-600">Current card</p>
+            <p className="font-mono text-sm text-slate-800">
               {(current?.rfidUID ?? selected.rfidUID) ?? 'None assigned'}
             </p>
           </div>
@@ -329,14 +329,14 @@ function CardsTab() {
             <button
               onClick={() => lostMutation.mutate()}
               disabled={!(current?.rfidUID ?? selected.rfidUID) || lostMutation.isPending}
-              className="flex-1 rounded-lg border border-amber-800 py-2 text-sm text-amber-400 hover:bg-amber-950/30 disabled:opacity-40"
+              className="flex-1 rounded-lg border border-amber-300 py-2 text-sm text-amber-600 hover:bg-amber-100 disabled:opacity-40"
             >
               Report Lost
             </button>
             <button
               onClick={() => deactivateMutation.mutate()}
               disabled={!(current?.rfidUID ?? selected.rfidUID) || deactivateMutation.isPending}
-              className="flex-1 rounded-lg border border-red-800 py-2 text-sm text-red-400 hover:bg-red-950/30 disabled:opacity-40"
+              className="flex-1 rounded-lg border border-red-300 py-2 text-sm text-red-600 hover:bg-red-100 disabled:opacity-40"
             >
               Deactivate
             </button>
@@ -344,26 +344,26 @@ function CardsTab() {
 
           {history && history.length > 0 && (
             <div>
-              <p className="mb-2 text-sm text-slate-300">Card history</p>
+              <p className="mb-2 text-sm text-slate-700">Card history</p>
               <div className="space-y-1.5">
                 {history.map((card) => (
-                  <div key={card.rfidUID} className="rounded-lg border border-slate-800 bg-slate-950/50 p-2 text-xs">
-                    <div className="flex justify-between text-slate-300">
+                  <div key={card.rfidUID} className="rounded-lg border border-slate-200 bg-slate-50 p-2 text-xs">
+                    <div className="flex justify-between text-slate-700">
                       <span className="font-mono">{card.rfidUID}</span>
                       <span
                         className={
                           card.status === 'active'
-                            ? 'text-emerald-400'
+                            ? 'text-emerald-600'
                             : card.status === 'lost'
-                              ? 'text-amber-400'
-                              : 'text-red-400'
+                              ? 'text-amber-600'
+                              : 'text-red-600'
                         }
                       >
                         {card.status}
                       </span>
                     </div>
                     {card.history.map((h, i) => (
-                      <div key={i} className="mt-1 text-slate-400">
+                      <div key={i} className="mt-1 text-slate-600">
                         {h.event} — {new Date(h.at).toLocaleString()}
                         {h.note ? ` (${h.note})` : ''}
                       </div>
@@ -390,7 +390,7 @@ function RejectionsTab() {
     <div className="overflow-hidden card">
       <table className="w-full text-left text-sm">
         <thead>
-          <tr className="border-b border-slate-800 text-xs uppercase tracking-wide text-slate-400">
+          <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-600">
             <th className="px-4 py-3">Time</th>
             <th className="px-4 py-3">RFID UID</th>
             <th className="px-4 py-3">Reason</th>
@@ -400,23 +400,23 @@ function RejectionsTab() {
         <tbody>
           {isLoading ? (
             <tr>
-              <td colSpan={4} className="px-4 py-8 text-center text-slate-400">
+              <td colSpan={4} className="px-4 py-8 text-center text-slate-600">
                 Loading…
               </td>
             </tr>
           ) : !data?.length ? (
             <tr>
-              <td colSpan={4} className="px-4 py-8 text-center text-slate-400">
+              <td colSpan={4} className="px-4 py-8 text-center text-slate-600">
                 No rejected taps.
               </td>
             </tr>
           ) : (
             data.map((r) => (
-              <tr key={r.rejectionId} className="border-b border-slate-800/60 text-slate-300 last:border-0">
+              <tr key={r.rejectionId} className="border-b border-slate-200/60 text-slate-700 last:border-0">
                 <td className="px-4 py-3">{new Date(r.at).toLocaleString()}</td>
                 <td className="px-4 py-3 font-mono text-xs">{r.rfidUID}</td>
-                <td className="px-4 py-3 text-red-400">{r.reason}</td>
-                <td className="px-4 py-3 font-mono text-xs text-slate-400">{r.deviceId}</td>
+                <td className="px-4 py-3 text-red-600">{r.reason}</td>
+                <td className="px-4 py-3 font-mono text-xs text-slate-600">{r.deviceId}</td>
               </tr>
             ))
           )}

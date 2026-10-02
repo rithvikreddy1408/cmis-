@@ -29,15 +29,15 @@ export default function ConfirmDialog({
         transition={{ type: 'spring', stiffness: 420, damping: 32 }}
         className="card w-full max-w-sm p-6"
       >
-        <div className="mb-3 flex items-center gap-2 text-red-400">
+        <div className="mb-3 flex items-center gap-2 text-red-600">
           <TriangleAlert className="h-5 w-5" />
           <h2 className="text-base font-semibold">{title}</h2>
         </div>
-        <p className="mb-6 text-sm text-slate-400">{message}</p>
+        <p className="mb-6 text-sm text-slate-600">{message}</p>
         <div className="flex justify-end gap-3">
           <button
             onClick={onCancel}
-            className="rounded-lg px-4 py-2 text-sm text-slate-300 transition hover:bg-white/5"
+            className="rounded-lg px-4 py-2 text-sm text-slate-700 transition hover:bg-black/5"
           >
             Cancel
           </button>

@@ -1,6 +1,5 @@
 import {
   LayoutDashboard,
-  Search,
   MapPin,
   ClipboardCheck,
   Ticket,
@@ -22,7 +21,6 @@ export default function StudentLayout() {
 
   const navItems: NavItem[] = [
     { label: 'Dashboard', to: '/student', icon: LayoutDashboard, end: true },
-    { label: 'Search Bus', to: '/student/search', icon: Search },
     { label: 'Track Bus', to: '/student/track', icon: MapPin },
     { label: 'Attendance', to: '/student/attendance', icon: ClipboardCheck },
     { label: 'Bus Pass', to: '/student/pass', icon: Ticket },

@@ -7,7 +7,7 @@ export function Skeleton({
   className?: string
   style?: CSSProperties
 }) {
-  return <div className={`animate-pulse rounded-lg bg-slate-800/60 ${className}`} style={style} />
+  return <div className={`animate-pulse rounded-lg bg-slate-200/60 ${className}`} style={style} />
 }
 
 export function SkeletonTable({ rows = 5, cols = 5 }: { rows?: number; cols?: number }) {
@@ -41,7 +41,7 @@ const BAR_HEIGHTS = [45, 70, 55, 90, 65, 40, 80]
 export function SkeletonChart({ title, height = 220 }: { title: string; height?: number }) {
   return (
     <div className="card p-5">
-      <h2 className="mb-3 text-sm font-medium text-slate-300">{title}</h2>
+      <h2 className="mb-3 text-sm font-medium text-slate-700">{title}</h2>
       <div className="flex items-end gap-3" style={{ height }}>
         {BAR_HEIGHTS.map((h, i) => (
           <Skeleton key={i} className="flex-1" style={{ height: `${h}%` }} />

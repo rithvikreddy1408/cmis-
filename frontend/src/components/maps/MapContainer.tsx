@@ -4,13 +4,16 @@ import { AlertTriangle } from 'lucide-react'
 
 const MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined
 
-// Muted dark basemap so the map matches the app's dark theme.
-const DARK_MAP_STYLE = [
-  { elementType: 'geometry', stylers: [{ color: '#1a1f2e' }] },
-  { elementType: 'labels.text.stroke', stylers: [{ color: '#1a1f2e' }] },
-  { elementType: 'labels.text.fill', stylers: [{ color: '#94a3b8' }] },
-  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#334155' }] },
-  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0f172a' }] },
+// Muted light basemap matching the app surface. Deliberately low-contrast:
+// the only things that should draw the eye on this map are the route line
+// and the live bus markers, so POIs and transit overlays stay off.
+const LIGHT_MAP_STYLE = [
+  { elementType: 'geometry', stylers: [{ color: '#f1f4f7' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#ffffff' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#5b6b7a' }] },
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#ffffff' }] },
+  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#e3e8ed' }] },
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#d8e8f2' }] },
   { featureType: 'poi', stylers: [{ visibility: 'off' }] },
   { featureType: 'transit', stylers: [{ visibility: 'off' }] },
 ]
@@ -30,12 +33,12 @@ export default function MapContainer({
 }) {
   if (!MAPS_API_KEY) {
     return (
-      <div className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-2xl border border-amber-900 bg-amber-950/20 p-6 text-center">
-        <AlertTriangle className="h-6 w-6 text-amber-500" />
-        <p className="text-sm text-amber-400">
+      <div className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
+        <AlertTriangle className="h-6 w-6 text-amber-600" />
+        <p className="text-sm text-amber-600">
           Google Maps API key not configured. Set{' '}
-          <code className="rounded bg-slate-800 px-1">VITE_GOOGLE_MAPS_API_KEY</code> in{' '}
-          <code className="rounded bg-slate-800 px-1">frontend/.env</code>.
+          <code className="rounded bg-slate-200 px-1">VITE_GOOGLE_MAPS_API_KEY</code> in{' '}
+          <code className="rounded bg-slate-200 px-1">frontend/.env</code>.
         </p>
       </div>
     )
@@ -48,7 +51,7 @@ export default function MapContainer({
         defaultZoom={zoom}
         gestureHandling="greedy"
         disableDefaultUI={false}
-        styles={DARK_MAP_STYLE}
+        styles={LIGHT_MAP_STYLE}
         onClick={(e) => {
           if (onClick && e.detail.latLng) {
             onClick(e.detail.latLng.lat, e.detail.latLng.lng)

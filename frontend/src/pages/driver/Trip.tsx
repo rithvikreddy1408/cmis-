@@ -85,7 +85,7 @@ export default function DriverTrip() {
     return (
       <div className="flex items-center justify-center py-20">
         <h1 className="sr-only">Trip & Navigation</h1>
-        <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+        <Loader2 className="h-6 w-6 animate-spin text-slate-600" />
       </div>
     )
   }
@@ -94,18 +94,18 @@ export default function DriverTrip() {
 
   return (
     <div className="max-w-2xl space-y-4">
-      <h1 className="text-xl font-semibold text-slate-100">Trip & Navigation</h1>
+      <h1 className="text-xl font-semibold text-slate-900">Trip & Navigation</h1>
 
       {banner && <Banner kind={banner.kind} message={banner.message} />}
 
       {!route ? (
-        <p className="text-sm text-slate-400">No route assigned to your bus yet.</p>
+        <p className="text-sm text-slate-600">No route assigned to your bus yet.</p>
       ) : (
         <div className="card p-5">
           <div className="mb-3 flex items-center justify-between">
             <div>
-              <p className="font-semibold text-slate-100">{route.routeName}</p>
-              <p className="text-sm text-slate-400">
+              <p className="font-semibold text-slate-900">{route.routeName}</p>
+              <p className="text-sm text-slate-600">
                 {route.startPoint} → {route.destination}
               </p>
             </div>
@@ -121,10 +121,10 @@ export default function DriverTrip() {
           </div>
 
           {sortedStops.length > 0 && (
-            <div className="space-y-1.5 border-t border-slate-800 pt-3">
+            <div className="space-y-1.5 border-t border-slate-200 pt-3">
               {sortedStops.map((stop, i) => (
-                <div key={i} className="flex items-center gap-2 text-sm text-slate-400">
-                  <MapPin className="h-3.5 w-3.5 text-slate-600" />
+                <div key={i} className="flex items-center gap-2 text-sm text-slate-600">
+                  <MapPin className="h-3.5 w-3.5 text-slate-400" />
                   {stop.name}
                 </div>
               ))}
@@ -134,26 +134,26 @@ export default function DriverTrip() {
       )}
 
       <div className="card p-5">
-        <div className="mb-3 flex items-center gap-2 text-slate-300">
+        <div className="mb-3 flex items-center gap-2 text-slate-700">
           <Users className="h-4 w-4" />
           <span className="text-sm font-medium">Boarding Feed</span>
         </div>
         {!activeTrip ? (
-          <p className="text-sm text-slate-400">Start a trip to see live boardings.</p>
+          <p className="text-sm text-slate-600">Start a trip to see live boardings.</p>
         ) : !boardingFeed?.length ? (
-          <p className="text-sm text-slate-400">No one has boarded yet.</p>
+          <p className="text-sm text-slate-600">No one has boarded yet.</p>
         ) : (
           <div className="space-y-1.5">
             {boardingFeed.map((entry, i) => (
               <div
                 key={i}
-                className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-950/50 px-3 py-2 text-sm"
+                className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm"
               >
-                <span className="text-slate-200">
+                <span className="text-slate-800">
                   {entry.studentName}{' '}
-                  <span className="text-slate-400">({entry.rollNumber})</span>
+                  <span className="text-slate-600">({entry.rollNumber})</span>
                 </span>
-                <span className="text-slate-400">
+                <span className="text-slate-600">
                   {new Date(entry.boardingTime).toLocaleTimeString()}
                 </span>
               </div>
@@ -164,7 +164,7 @@ export default function DriverTrip() {
 
       <button
         onClick={() => setConfirmingEmergency(true)}
-        className="flex w-full items-center justify-center gap-2 rounded-lg border border-red-800 bg-red-950/20 py-3 text-sm font-medium text-red-400 transition hover:bg-red-950/40"
+        className="flex w-full items-center justify-center gap-2 rounded-lg border border-red-300 bg-red-50 py-3 text-sm font-medium text-red-600 transition hover:bg-red-100"
       >
         <Siren className="h-4 w-4" />
         Emergency Alert

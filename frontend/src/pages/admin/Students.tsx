@@ -2,7 +2,6 @@ import { useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Upload, Download, KeyRound } from 'lucide-react'
-import * as XLSX from 'xlsx'
 import PageHeader from '../../components/ui/PageHeader'
 import DataTable, { type Column } from '../../components/ui/DataTable'
 import Modal from '../../components/ui/Modal'
@@ -59,7 +58,7 @@ export default function Students() {
       setCreating(false)
       notify(
         'success',
-        `${student.name} added. Temp password: ${tempPassword} (shown once — share securely)`,
+        `${student.name} added. Login: ${student.email} · Temporary password: ${tempPassword} (shown once — share securely)`,
       )
     },
     onError: (err: unknown) => notify('error', extractError(err)),
@@ -119,7 +118,10 @@ export default function Students() {
     e.target.value = ''
   }
 
-  function handleExport() {
+  // SheetJS loads on click rather than with the page — the roster table should
+  // not wait on an export library it may never need.
+  async function handleExport() {
+    const XLSX = await import('xlsx')
     const rows = (data?.data ?? []).map((s) => ({
       rollNumber: s.rollNumber,
       name: s.name,
@@ -154,7 +156,7 @@ export default function Students() {
           onChange={(e) =>
             assignBusMutation.mutate({ id: s.studentId, busId: e.target.value || null })
           }
-          className="rounded-lg input px-2 py-1 text-xs text-slate-200"
+          className="rounded-lg input px-2 py-1 text-xs text-slate-800"
         >
           <option value="">Unassigned</option>
           {(buses?.data ?? []).map((b) => (
@@ -175,13 +177,13 @@ export default function Students() {
         <div className="flex justify-end gap-2">
           <button
             onClick={() => setEditing(s)}
-            className="rounded-lg px-2 py-1 text-xs text-indigo-400 hover:bg-slate-800"
+            className="rounded-lg px-2 py-1 text-xs text-indigo-600 hover:bg-slate-200"
           >
             Edit
           </button>
           <button
             onClick={() => setDeleting(s)}
-            className="rounded-lg px-2 py-1 text-xs text-red-400 hover:bg-slate-800"
+            className="rounded-lg px-2 py-1 text-xs text-red-600 hover:bg-slate-200"
           >
             Delete
           </button>
@@ -214,14 +216,14 @@ export default function Students() {
             <button
               onClick={handleImportClick}
               disabled={importMutation.isPending}
-              className="flex items-center gap-1.5 rounded-lg border border-slate-700 px-3 py-2 text-sm text-slate-300 transition hover:bg-slate-800 disabled:opacity-60"
+              className="flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-200 disabled:opacity-60"
             >
               <Upload className="h-4 w-4" />
               Import Excel
             </button>
             <button
               onClick={handleExport}
-              className="flex items-center gap-1.5 rounded-lg border border-slate-700 px-3 py-2 text-sm text-slate-300 transition hover:bg-slate-800"
+              className="flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-200"
             >
               <Download className="h-4 w-4" />
               Export Excel
@@ -292,10 +294,10 @@ export default function Students() {
 
 function PassBadge({ status }: { status: Student['passStatus'] }) {
   const styles: Record<Student['passStatus'], string> = {
-    active: 'bg-emerald-500/15 text-emerald-400',
-    expired: 'bg-amber-500/15 text-amber-400',
-    revoked: 'bg-red-500/15 text-red-400',
-    none: 'bg-slate-700/40 text-slate-400',
+    active: 'bg-emerald-500/15 text-emerald-600',
+    expired: 'bg-amber-500/15 text-amber-600',
+    revoked: 'bg-red-500/15 text-red-600',
+    none: 'bg-slate-300/40 text-slate-600',
   }
   return (
     <span className={`rounded-full px-2 py-0.5 text-xs ${styles[status]}`}>{status}</span>
@@ -362,7 +364,7 @@ function StudentFormModal({
         </div>
 
         <div className="flex justify-end gap-3 pt-2">
-          <button type="button" onClick={onClose} className="rounded-lg px-4 py-2 text-sm text-slate-300 hover:bg-slate-800">
+          <button type="button" onClick={onClose} className="rounded-lg px-4 py-2 text-sm text-slate-700 hover:bg-slate-200">
             Cancel
           </button>
           <button
@@ -388,20 +390,20 @@ function ImportSummaryModal({
   return (
     <Modal title="Import results" onClose={onClose} width="max-w-2xl">
       <div className="mb-4 flex gap-4 text-sm">
-        <span className="text-emerald-400">{summary.createdCount} created</span>
-        <span className="text-red-400">{summary.rejectedCount} rejected</span>
+        <span className="text-emerald-600">{summary.createdCount} created</span>
+        <span className="text-red-600">{summary.rejectedCount} rejected</span>
       </div>
 
       {summary.created.length > 0 && (
         <div className="mb-4">
-          <h3 className="mb-2 flex items-center gap-1.5 text-sm font-medium text-slate-300">
+          <h3 className="mb-2 flex items-center gap-1.5 text-sm font-medium text-slate-700">
             <KeyRound className="h-4 w-4" /> Temp passwords (shown once)
           </h3>
-          <div className="max-h-40 overflow-y-auto rounded-lg border border-slate-800 text-xs">
+          <div className="max-h-40 overflow-y-auto rounded-lg border border-slate-200 text-xs">
             {summary.created.map((c) => (
-              <div key={c.row} className="flex justify-between border-b border-slate-800/60 px-3 py-1.5 last:border-0">
-                <span className="text-slate-400">{c.email}</span>
-                <span className="font-mono text-slate-200">{c.tempPassword}</span>
+              <div key={c.row} className="flex justify-between border-b border-slate-200/60 px-3 py-1.5 last:border-0">
+                <span className="text-slate-600">{c.email}</span>
+                <span className="font-mono text-slate-800">{c.tempPassword}</span>
               </div>
             ))}
           </div>
@@ -410,12 +412,12 @@ function ImportSummaryModal({
 
       {summary.rejected.length > 0 && (
         <div>
-          <h3 className="mb-2 text-sm font-medium text-slate-300">Rejected rows</h3>
-          <div className="max-h-52 overflow-y-auto rounded-lg border border-slate-800 text-xs">
+          <h3 className="mb-2 text-sm font-medium text-slate-700">Rejected rows</h3>
+          <div className="max-h-52 overflow-y-auto rounded-lg border border-slate-200 text-xs">
             {summary.rejected.map((r) => (
-              <div key={r.row} className="border-b border-slate-800/60 px-3 py-2 last:border-0">
-                <span className="text-slate-400">Row {r.row}: </span>
-                <span className="text-red-400">{r.errors}</span>
+              <div key={r.row} className="border-b border-slate-200/60 px-3 py-2 last:border-0">
+                <span className="text-slate-600">Row {r.row}: </span>
+                <span className="text-red-600">{r.errors}</span>
               </div>
             ))}
           </div>

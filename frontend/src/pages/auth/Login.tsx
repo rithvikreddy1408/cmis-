@@ -49,7 +49,7 @@ export default function Login() {
   }
 
   return (
-    <main className="flex min-h-full items-center justify-center px-4 text-slate-100">
+    <main className="flex min-h-full items-center justify-center px-4 text-slate-900">
       <motion.div
         initial={{ opacity: 0, y: 16, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -62,13 +62,13 @@ export default function Login() {
           </div>
           <div>
             <h1 className="text-lg font-semibold tracking-tight">Sign in to CMIS</h1>
-            <p className="text-sm text-slate-400">Campus Mobility Intelligence</p>
+            <p className="text-sm text-slate-600">Campus Mobility Intelligence</p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
           <div>
-            <label htmlFor="email" className="mb-1 block text-sm text-slate-300">
+            <label htmlFor="email" className="mb-1 block text-sm text-slate-700">
               Email
             </label>
             <input
@@ -79,12 +79,12 @@ export default function Login() {
               {...register('email', { required: 'Email is required' })}
             />
             {errors.email && (
-              <p className="mt-1 text-xs text-red-400">{errors.email.message}</p>
+              <p className="mt-1 text-xs text-red-600">{errors.email.message}</p>
             )}
           </div>
 
           <div>
-            <label htmlFor="password" className="mb-1 block text-sm text-slate-300">
+            <label htmlFor="password" className="mb-1 block text-sm text-slate-700">
               Password
             </label>
             <input
@@ -95,26 +95,26 @@ export default function Login() {
               {...register('password', { required: 'Password is required' })}
             />
             {errors.password && (
-              <p className="mt-1 text-xs text-red-400">{errors.password.message}</p>
+              <p className="mt-1 text-xs text-red-600">{errors.password.message}</p>
             )}
           </div>
 
           <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center gap-2 text-slate-400">
+            <label className="flex items-center gap-2 text-slate-600">
               <input
                 type="checkbox"
-                className="rounded border-slate-700 bg-slate-950 text-indigo-500 accent-indigo-500"
+                className="rounded border-slate-300 bg-slate-50 text-indigo-600 accent-indigo-500"
                 {...register('rememberMe')}
               />
               Remember me
             </label>
-            <Link to="/forgot-password" className="text-indigo-400 hover:text-indigo-300">
+            <Link to="/forgot-password" className="text-indigo-600 hover:text-indigo-700">
               Forgot password?
             </Link>
           </div>
 
           {serverError && (
-            <p className="rounded-lg border border-red-900 bg-red-950/50 px-3 py-2 text-sm text-red-400">
+            <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
               {serverError}
             </p>
           )}

@@ -18,15 +18,15 @@ export default function PageHeader({
 }) {
   return (
     <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-      <h1 className="text-xl font-semibold text-slate-100">{title}</h1>
+      <h1 className="text-xl font-semibold text-slate-900">{title}</h1>
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-600" />
           <input
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search..."
-            className="w-56 rounded-lg input py-2 pl-9 pr-3 text-sm text-slate-100"
+            className="w-56 rounded-lg input py-2 pl-9 pr-3 text-sm text-slate-900"
           />
         </div>
         {extra}

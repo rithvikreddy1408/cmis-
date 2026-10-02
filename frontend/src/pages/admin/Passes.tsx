@@ -74,19 +74,19 @@ export default function Passes() {
 
   return (
     <div>
-      <h1 className="mb-5 text-xl font-semibold text-slate-100">Bus Pass Management</h1>
+      <h1 className="mb-5 text-xl font-semibold text-slate-900">Bus Pass Management</h1>
 
       {banner && <Banner kind={banner.kind} message={banner.message} />}
 
       <div className="mb-6">
-        <h2 className="mb-2 flex items-center gap-1.5 text-sm font-medium text-slate-300">
-          <TriangleAlert className="h-4 w-4 text-amber-400" />
+        <h2 className="mb-2 flex items-center gap-1.5 text-sm font-medium text-slate-700">
+          <TriangleAlert className="h-4 w-4 text-amber-600" />
           Expiring within 7 days ({expiring?.length ?? 0})
         </h2>
         <div className="overflow-hidden card">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-slate-800 text-xs uppercase tracking-wide text-slate-400">
+              <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-600">
                 <th className="px-4 py-3">Student</th>
                 <th className="px-4 py-3">Roll No.</th>
                 <th className="px-4 py-3">Expiry</th>
@@ -95,16 +95,16 @@ export default function Passes() {
             <tbody>
               {!expiring?.length ? (
                 <tr>
-                  <td colSpan={3} className="px-4 py-6 text-center text-slate-400">
+                  <td colSpan={3} className="px-4 py-6 text-center text-slate-600">
                     Nothing expiring soon.
                   </td>
                 </tr>
               ) : (
                 expiring.map((s) => (
-                  <tr key={s.studentId} className="border-b border-slate-800/60 text-slate-300 last:border-0">
+                  <tr key={s.studentId} className="border-b border-slate-200/60 text-slate-700 last:border-0">
                     <td className="px-4 py-3">{s.name}</td>
                     <td className="px-4 py-3">{s.rollNumber}</td>
-                    <td className="px-4 py-3 text-amber-400">
+                    <td className="px-4 py-3 text-amber-600">
                       {s.passExpiry ? new Date(s.passExpiry).toLocaleDateString() : '—'}
                     </td>
                   </tr>
@@ -131,8 +131,8 @@ export default function Passes() {
         {selected && (
           <div className="space-y-4 card p-5">
             <div>
-              <p className="mb-1 text-sm text-slate-400">Current status</p>
-              <p className="text-sm text-slate-200">
+              <p className="mb-1 text-sm text-slate-600">Current status</p>
+              <p className="text-sm text-slate-800">
                 {current?.passStatus ?? selected.passStatus}
                 {(current?.passExpiry ?? selected.passExpiry)
                   ? ` — expires ${new Date((current?.passExpiry ?? selected.passExpiry)!).toLocaleDateString()}`
@@ -165,7 +165,7 @@ export default function Passes() {
               <button
                 onClick={() => revokeMutation.mutate()}
                 disabled={revokeMutation.isPending}
-                className="flex-1 rounded-lg border border-red-800 py-2 text-sm text-red-400 hover:bg-red-950/30 disabled:opacity-50"
+                className="flex-1 rounded-lg border border-red-300 py-2 text-sm text-red-600 hover:bg-red-100 disabled:opacity-50"
               >
                 Revoke
               </button>
@@ -173,12 +173,12 @@ export default function Passes() {
 
             {history && history.length > 0 && (
               <div>
-                <p className="mb-2 text-sm text-slate-300">Pass history</p>
+                <p className="mb-2 text-sm text-slate-700">Pass history</p>
                 <div className="space-y-1.5">
                   {history.map((p) => (
                     <div
                       key={p.passId}
-                      className="flex justify-between rounded-lg border border-slate-800 bg-slate-950/50 px-3 py-2 text-xs text-slate-400"
+                      className="flex justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600"
                     >
                       <span>
                         Issued {new Date(p.issuedDate).toLocaleDateString()} → expires{' '}
@@ -187,10 +187,10 @@ export default function Passes() {
                       <span
                         className={
                           p.status === 'active'
-                            ? 'text-emerald-400'
+                            ? 'text-emerald-600'
                             : p.status === 'expired'
-                              ? 'text-amber-400'
-                              : 'text-red-400'
+                              ? 'text-amber-600'
+                              : 'text-red-600'
                         }
                       >
                         {p.status}

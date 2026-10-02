@@ -26,7 +26,7 @@ export default function Pass() {
     return (
       <div className="flex items-center justify-center py-20">
         <h1 className="sr-only">Bus Pass</h1>
-        <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+        <Loader2 className="h-6 w-6 animate-spin text-slate-600" />
       </div>
     )
   }
@@ -34,30 +34,30 @@ export default function Pass() {
   const hasPass = student?.passStatus && student.passStatus !== 'none'
   const statusColor =
     student?.passStatus === 'active'
-      ? 'text-emerald-400'
+      ? 'text-emerald-600'
       : student?.passStatus === 'expired'
-        ? 'text-amber-400'
+        ? 'text-amber-600'
         : student?.passStatus === 'revoked'
-          ? 'text-red-400'
-          : 'text-slate-400'
+          ? 'text-red-600'
+          : 'text-slate-600'
 
   return (
     <div className="max-w-lg">
-      <h1 className="mb-5 text-xl font-semibold text-slate-100">Bus Pass</h1>
+      <h1 className="mb-5 text-xl font-semibold text-slate-900">Bus Pass</h1>
 
       {banner && <Banner kind={banner.kind} message={banner.message} />}
 
       <div className="card p-6">
         <div className="mb-4 flex items-center gap-3">
           <div className="rounded-xl bg-indigo-500/15 p-3">
-            <Ticket className="h-6 w-6 text-indigo-400" />
+            <Ticket className="h-6 w-6 text-indigo-600" />
           </div>
           <div>
             <p className={`text-lg font-semibold ${statusColor}`}>
               {hasPass ? student!.passStatus : 'No pass issued'}
             </p>
             {student?.passExpiry && (
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-slate-600">
                 Expires {new Date(student.passExpiry).toLocaleDateString()}
               </p>
             )}
@@ -65,14 +65,14 @@ export default function Pass() {
         </div>
 
         {student?.passStatus === 'active' && (
-          <div className="mb-4 flex items-center gap-2 rounded-lg border border-emerald-900 bg-emerald-950/30 px-3 py-2 text-sm text-emerald-400">
+          <div className="mb-4 flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-600">
             <CheckCircle2 className="h-4 w-4" />
             Your pass is active. Show it at boarding if asked.
           </div>
         )}
 
         {(student?.passStatus === 'expired' || student?.passStatus === 'revoked' || !hasPass) && (
-          <div className="mb-4 flex items-start gap-2 rounded-lg border border-amber-900 bg-amber-950/30 px-3 py-2 text-sm text-amber-400">
+          <div className="mb-4 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-600">
             <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" />
             {!hasPass
               ? 'No pass has been issued to you yet. Contact your transport admin.'

@@ -47,28 +47,28 @@ export default function NotificationItem({
         onClick={() => !isRead && onMarkRead()}
         className={`relative flex w-full items-start gap-3 rounded-xl border px-4 py-3 text-left transition ${
           isRead
-            ? 'border-slate-800 bg-slate-900/40'
-            : 'border-indigo-800 bg-indigo-950/20 hover:bg-indigo-950/30'
+            ? 'border-slate-200 bg-slate-100/40'
+            : 'border-indigo-200 bg-indigo-50 hover:bg-indigo-100'
         }`}
       >
         {isRead ? (
-          <Bell className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+          <Bell className="mt-0.5 h-4 w-4 shrink-0 text-slate-600" />
         ) : (
-          <BellRing className="mt-0.5 h-4 w-4 shrink-0 text-indigo-400" />
+          <BellRing className="mt-0.5 h-4 w-4 shrink-0 text-indigo-600" />
         )}
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <p className={`text-sm font-medium ${isRead ? 'text-slate-300' : 'text-slate-100'}`}>
+            <p className={`text-sm font-medium ${isRead ? 'text-slate-700' : 'text-slate-900'}`}>
               {title}
             </p>
             {type && (
-              <span className="rounded-full bg-slate-800 px-1.5 py-0.5 text-xs text-slate-400">
+              <span className="rounded-full bg-slate-200 px-1.5 py-0.5 text-xs text-slate-600">
                 {type}
               </span>
             )}
           </div>
-          <p className="text-sm text-slate-400">{message}</p>
-          <p className="mt-1 text-xs text-slate-400">{new Date(createdAt).toLocaleString()}</p>
+          <p className="text-sm text-slate-600">{message}</p>
+          <p className="mt-1 text-xs text-slate-600">{new Date(createdAt).toLocaleString()}</p>
         </div>
       </motion.button>
     </div>

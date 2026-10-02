@@ -11,8 +11,9 @@ import Banner from '../../components/ui/Banner'
 import { routesApi } from '../../services/routes.api'
 import { mapsApi } from '../../services/maps.api'
 import type { LatLng, RouteStop } from '../../types'
+import { SERVICE_AREA_CENTER } from '../../utils/mapDefaults'
 
-const DEFAULT_CENTER: LatLng = { lat: 13.0827, lng: 80.2707 } // Chennai
+const DEFAULT_CENTER: LatLng = SERVICE_AREA_CENTER
 
 export default function RouteBuilder() {
   const { id } = useParams<{ id: string }>()
@@ -174,13 +175,13 @@ export default function RouteBuilder() {
       <div className="flex w-96 shrink-0 flex-col overflow-y-auto card p-5">
         <button
           onClick={() => navigate('/admin/routes')}
-          className="mb-4 flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-200"
+          className="mb-4 flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-800"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Routes
         </button>
 
-        <h1 className="mb-4 text-lg font-semibold text-slate-100">
+        <h1 className="mb-4 text-lg font-semibold text-slate-900">
           {isEditing ? 'Edit Route' : 'New Route'}
         </h1>
 
@@ -203,7 +204,7 @@ export default function RouteBuilder() {
                 onClick={handleGeocodeStart}
                 disabled={geocodingStart}
                 aria-label="Locate start point on map"
-                className="mb-0.5 rounded-lg border border-slate-700 p-2 text-slate-300 hover:bg-slate-800 disabled:opacity-50"
+                className="mb-0.5 rounded-lg border border-slate-300 p-2 text-slate-700 hover:bg-slate-200 disabled:opacity-50"
               >
                 {geocodingStart ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -213,7 +214,7 @@ export default function RouteBuilder() {
               </button>
             </div>
             {startLocation && (
-              <p className="mt-1 text-xs text-emerald-400">
+              <p className="mt-1 text-xs text-emerald-600">
                 Located: {startLocation.lat.toFixed(5)}, {startLocation.lng.toFixed(5)}
               </p>
             )}
@@ -233,7 +234,7 @@ export default function RouteBuilder() {
                 onClick={handleGeocodeDestination}
                 disabled={geocodingDest}
                 aria-label="Locate destination on map"
-                className="mb-0.5 rounded-lg border border-slate-700 p-2 text-slate-300 hover:bg-slate-800 disabled:opacity-50"
+                className="mb-0.5 rounded-lg border border-slate-300 p-2 text-slate-700 hover:bg-slate-200 disabled:opacity-50"
               >
                 {geocodingDest ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -243,7 +244,7 @@ export default function RouteBuilder() {
               </button>
             </div>
             {destinationLocation && (
-              <p className="mt-1 text-xs text-emerald-400">
+              <p className="mt-1 text-xs text-emerald-600">
                 Located: {destinationLocation.lat.toFixed(5)}, {destinationLocation.lng.toFixed(5)}
               </p>
             )}
@@ -251,42 +252,42 @@ export default function RouteBuilder() {
 
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <p className="text-sm text-slate-300">Stops ({sortedStops.length})</p>
-              <span className="text-xs text-slate-400">Click the map to add</span>
+              <p className="text-sm text-slate-700">Stops ({sortedStops.length})</p>
+              <span className="text-xs text-slate-600">Click the map to add</span>
             </div>
             <div className="space-y-2">
               {sortedStops.map((stop, i) => (
                 <div
                   key={i}
-                  className="flex items-center gap-2 rounded-lg border border-slate-800 bg-slate-950/50 p-2"
+                  className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 p-2"
                 >
-                  <GripVertical className="h-4 w-4 shrink-0 text-slate-600" />
+                  <GripVertical className="h-4 w-4 shrink-0 text-slate-400" />
                   <input
                     value={stop.name}
                     onChange={(e) => updateStopName(i, e.target.value)}
-                    className="min-w-0 flex-1 bg-transparent text-sm text-slate-200 outline-none"
+                    className="min-w-0 flex-1 bg-transparent text-sm text-slate-800 outline-none"
                   />
                   <button
                     onClick={() => moveStop(i, -1)}
                     disabled={i === 0}
-                    className="text-slate-400 hover:text-slate-300 disabled:opacity-30"
+                    className="text-slate-600 hover:text-slate-700 disabled:opacity-30"
                   >
                     ↑
                   </button>
                   <button
                     onClick={() => moveStop(i, 1)}
                     disabled={i === sortedStops.length - 1}
-                    className="text-slate-400 hover:text-slate-300 disabled:opacity-30"
+                    className="text-slate-600 hover:text-slate-700 disabled:opacity-30"
                   >
                     ↓
                   </button>
-                  <button onClick={() => removeStop(i)} className="text-red-400 hover:text-red-300">
+                  <button onClick={() => removeStop(i)} className="text-red-600 hover:text-red-700">
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
               ))}
               {sortedStops.length === 0 && (
-                <p className="rounded-lg border border-dashed border-slate-800 p-3 text-center text-xs text-slate-400">
+                <p className="rounded-lg border border-dashed border-slate-200 p-3 text-center text-xs text-slate-600">
                   No stops yet
                 </p>
               )}
@@ -296,21 +297,21 @@ export default function RouteBuilder() {
           <button
             onClick={handlePreview}
             disabled={previewing || !startLocation || !destinationLocation}
-            className="flex w-full items-center justify-center gap-2 rounded-lg border border-indigo-700 bg-indigo-950/40 py-2 text-sm font-medium text-indigo-300 transition hover:bg-indigo-900/40 disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-indigo-300 bg-indigo-50 py-2 text-sm font-medium text-indigo-700 transition hover:bg-indigo-100 disabled:opacity-50"
           >
             {previewing && <Loader2 className="h-4 w-4 animate-spin" />}
             Preview Route
           </button>
 
           {(distance != null || expectedTime != null) && (
-            <div className="flex gap-4 rounded-lg border border-slate-800 bg-slate-950/50 p-3 text-sm">
+            <div className="flex gap-4 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm">
               <div>
-                <p className="text-xs text-slate-400">Distance</p>
-                <p className="text-slate-200">{distance != null ? `${distance} km` : '—'}</p>
+                <p className="text-xs text-slate-600">Distance</p>
+                <p className="text-slate-800">{distance != null ? `${distance} km` : '—'}</p>
               </div>
               <div>
-                <p className="text-xs text-slate-400">ETA</p>
-                <p className="text-slate-200">{expectedTime != null ? `${expectedTime} min` : '—'}</p>
+                <p className="text-xs text-slate-600">ETA</p>
+                <p className="text-slate-800">{expectedTime != null ? `${expectedTime} min` : '—'}</p>
               </div>
             </div>
           )}

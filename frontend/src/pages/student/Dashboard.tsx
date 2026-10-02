@@ -12,6 +12,7 @@ import {
 import { studentsApi } from '../../services/students.api'
 import { busesApi } from '../../services/buses.api'
 import { driversApi } from '../../services/drivers.api'
+import { routesApi } from '../../services/routes.api'
 import { useBusChannel } from '../../hooks/useBusChannel'
 import PullToRefresh from '../../components/ui/PullToRefresh'
 
@@ -35,6 +36,12 @@ export default function StudentDashboard() {
     enabled: Boolean(bus?.driverId),
   })
 
+  const { data: route } = useQuery({
+    queryKey: ['route', bus?.routeId],
+    queryFn: () => routesApi.get(bus!.routeId!),
+    enabled: Boolean(bus?.routeId),
+  })
+
   const { data: attendance } = useQuery({
     queryKey: ['students', 'me', 'attendance'],
     queryFn: () => studentsApi.myAttendance(),
@@ -46,6 +53,7 @@ export default function StudentDashboard() {
   async function handleRefresh() {
     await queryClient.invalidateQueries({ queryKey: ['students'] })
     await queryClient.invalidateQueries({ queryKey: ['bus'] })
+    await queryClient.invalidateQueries({ queryKey: ['route'] })
     await queryClient.invalidateQueries({ queryKey: ['driver-public'] })
   }
 
@@ -56,7 +64,7 @@ export default function StudentDashboard() {
     return (
       <div className="flex items-center justify-center py-20">
         <h1 className="sr-only">Dashboard</h1>
-        <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+        <Loader2 className="h-6 w-6 animate-spin text-slate-600" />
       </div>
     )
   }
@@ -64,74 +72,90 @@ export default function StudentDashboard() {
   return (
     <PullToRefresh onRefresh={handleRefresh}>
       <div>
-      <h1 className="mb-5 text-xl font-semibold text-slate-100">
+      <h1 className="mb-5 text-xl font-semibold text-slate-900">
         Welcome, {student?.name.split(' ')[0]}
       </h1>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <div className="card p-5">
-          <div className="mb-3 flex items-center gap-2 text-slate-400">
+          <div className="mb-3 flex items-center gap-2 text-slate-600">
             <BusIcon className="h-4 w-4" />
             <span className="text-sm">Assigned Bus</span>
           </div>
           {bus ? (
             <>
-              <p className="text-lg font-semibold text-slate-100">{bus.busNumber}</p>
-              <p className="text-sm text-slate-400">
+              <p className="text-lg font-semibold text-slate-900">{bus.busNumber}</p>
+              <p className="text-sm text-slate-600">
                 Status: <StatusPill status={bus.status} />
               </p>
               <Link
-                to={`/student/track/${bus.busId}`}
-                className="mt-3 inline-flex items-center gap-1.5 text-sm text-indigo-400 hover:text-indigo-300"
+                to="/student/track"
+                className="mt-3 inline-flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-700"
               >
                 <MapPin className="h-3.5 w-3.5" /> Track live
               </Link>
             </>
           ) : (
-            <p className="text-sm text-slate-400">No bus assigned yet.</p>
+            <p className="text-sm text-slate-600">No bus assigned yet.</p>
           )}
         </div>
 
         <div className="card p-5">
-          <div className="mb-3 flex items-center gap-2 text-slate-400">
+          <div className="mb-3 flex items-center gap-2 text-slate-600">
+            <MapPin className="h-4 w-4" />
+            <span className="text-sm">Your assigned route</span>
+          </div>
+          {route ? (
+            <>
+              <p className="text-lg font-semibold text-slate-900">{route.routeName}</p>
+              <p className="text-sm text-slate-600">{route.startPoint} → {route.destination}</p>
+              <Link to="/student/track" className="mt-3 inline-flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-700">
+                <MapPin className="h-3.5 w-3.5" /> View assigned route and live bus
+              </Link>
+            </>
+          ) : <p className="text-sm text-slate-600">No route assigned to your bus yet.</p>}
+        </div>
+
+        <div className="card p-5">
+          <div className="mb-3 flex items-center gap-2 text-slate-600">
             <Contact className="h-4 w-4" />
             <span className="text-sm">Driver</span>
           </div>
           {driver ? (
             <>
-              <p className="text-lg font-semibold text-slate-100">{driver.name}</p>
-              <p className="text-sm text-slate-400">{driver.phone}</p>
+              <p className="text-lg font-semibold text-slate-900">{driver.name}</p>
+              <p className="text-sm text-slate-600">{driver.phone}</p>
             </>
           ) : (
-            <p className="text-sm text-slate-400">Not assigned yet.</p>
+            <p className="text-sm text-slate-600">Not assigned yet.</p>
           )}
         </div>
 
         <div className="card p-5">
-          <div className="mb-3 flex items-center gap-2 text-slate-400">
+          <div className="mb-3 flex items-center gap-2 text-slate-600">
             <ClipboardCheck className="h-4 w-4" />
             <span className="text-sm">Today's Attendance</span>
           </div>
           {todayRecord ? (
             <>
-              <p className="text-lg font-semibold text-emerald-400">Boarded</p>
-              <p className="text-sm text-slate-400">
+              <p className="text-lg font-semibold text-emerald-600">Boarded</p>
+              <p className="text-sm text-slate-600">
                 {new Date(todayRecord.boardingTime).toLocaleTimeString()}
               </p>
             </>
           ) : (
-            <p className="text-sm text-slate-400">Not boarded yet today.</p>
+            <p className="text-sm text-slate-600">Not boarded yet today.</p>
           )}
           <Link
             to="/student/attendance"
-            className="mt-3 inline-block text-sm text-indigo-400 hover:text-indigo-300"
+            className="mt-3 inline-block text-sm text-indigo-600 hover:text-indigo-700"
           >
             View history
           </Link>
         </div>
 
         <div className="card p-5">
-          <div className="mb-3 flex items-center gap-2 text-slate-400">
+          <div className="mb-3 flex items-center gap-2 text-slate-600">
             <Ticket className="h-4 w-4" />
             <span className="text-sm">Bus Pass</span>
           </div>
@@ -139,18 +163,18 @@ export default function StudentDashboard() {
             <>
               <PassStatusPill status={student.passStatus} />
               {student.passExpiry && (
-                <p className="mt-1 text-sm text-slate-400">
+                <p className="mt-1 text-sm text-slate-600">
                   Expires {new Date(student.passExpiry).toLocaleDateString()}
                 </p>
               )}
             </>
           ) : (
-            <div className="flex items-center gap-1.5 text-amber-400">
+            <div className="flex items-center gap-1.5 text-amber-600">
               <TriangleAlert className="h-4 w-4" />
               <p className="text-sm">No pass issued</p>
             </div>
           )}
-          <Link to="/student/pass" className="mt-3 inline-block text-sm text-indigo-400 hover:text-indigo-300">
+          <Link to="/student/pass" className="mt-3 inline-block text-sm text-indigo-600 hover:text-indigo-700">
             Manage pass
           </Link>
         </div>
@@ -162,19 +186,19 @@ export default function StudentDashboard() {
 
 function StatusPill({ status }: { status: string }) {
   const styles: Record<string, string> = {
-    idle: 'text-slate-400',
-    on_trip: 'text-emerald-400',
-    offline: 'text-red-400',
-    maintenance: 'text-amber-400',
+    idle: 'text-slate-600',
+    on_trip: 'text-emerald-600',
+    offline: 'text-red-600',
+    maintenance: 'text-amber-600',
   }
-  return <span className={styles[status] ?? 'text-slate-400'}>{status}</span>
+  return <span className={styles[status] ?? 'text-slate-600'}>{status}</span>
 }
 
 function PassStatusPill({ status }: { status: string }) {
   const styles: Record<string, string> = {
-    active: 'text-emerald-400',
-    expired: 'text-amber-400',
-    revoked: 'text-red-400',
+    active: 'text-emerald-600',
+    expired: 'text-amber-600',
+    revoked: 'text-red-600',
   }
-  return <p className={`text-lg font-semibold ${styles[status] ?? 'text-slate-400'}`}>{status}</p>
+  return <p className={`text-lg font-semibold ${styles[status] ?? 'text-slate-600'}`}>{status}</p>
 }

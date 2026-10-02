@@ -12,8 +12,8 @@ export default function Banner({
     <div
       className={`mb-4 flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
         isSuccess
-          ? 'border-emerald-900 bg-emerald-950/40 text-emerald-400'
-          : 'border-red-900 bg-red-950/50 text-red-400'
+          ? 'border-emerald-200 bg-emerald-50 text-emerald-600'
+          : 'border-red-200 bg-red-50 text-red-600'
       }`}
     >
       {isSuccess ? (
