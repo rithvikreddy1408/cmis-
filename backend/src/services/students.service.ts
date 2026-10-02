@@ -59,7 +59,8 @@ export async function createStudent(
   if (input.rfidUID) await assertUnique('rfidUID', input.rfidUID)
 
   const ref = db.collection(COLLECTIONS.students).doc()
-  const tempPassword = generateTempPassword()
+  // An admin-chosen password is used as-is; otherwise one is generated.
+  const tempPassword = input.password?.trim() || generateTempPassword()
 
   try {
     await createUserWithRole({

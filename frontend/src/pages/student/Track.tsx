@@ -4,6 +4,7 @@ import FleetMap, { type FleetStop } from '../../components/maps/FleetMap'
 import { SERVICE_AREA_CENTER } from '../../utils/mapDefaults'
 import { navigateToPointUrl } from '../../utils/navigation'
 import { parkedPosition } from '../../utils/parkedPosition'
+import { settingsApi } from '../../services/settings.api'
 import { studentsApi } from '../../services/students.api'
 import { busesApi } from '../../services/buses.api'
 import { routesApi } from '../../services/routes.api'
@@ -51,6 +52,14 @@ export default function Track() {
     retry: false,
   })
 
+  // The non-service calendar changes rarely, so it is cached for the session
+  // rather than refetched alongside the live position.
+  const { data: calendar } = useQuery({
+    queryKey: ['service-calendar'],
+    queryFn: settingsApi.serviceCalendar,
+    staleTime: 60 * 60_000,
+  })
+
   useBusChannel(busId)
 
   if (studentLoading || busLoading) {
@@ -81,7 +90,7 @@ export default function Track() {
     ? { lat: gps.latitude, lng: gps.longitude }
     : (bus?.routeId && route?.startLocation) || SERVICE_AREA_CENTER
 
-  const parked = gps ? null : parkedPosition(route)
+  const parked = gps ? null : parkedPosition(route, new Date(), calendar?.holidayDates ?? [])
   const mapBuses =
     gps && bus
       ? [

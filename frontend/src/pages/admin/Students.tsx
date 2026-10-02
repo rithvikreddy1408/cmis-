@@ -21,6 +21,7 @@ interface StudentForm {
   phone: string
   email: string
   rfidUID?: string
+  password?: string
 }
 
 export default function Students() {
@@ -53,12 +54,15 @@ export default function Students() {
 
   const createMutation = useMutation({
     mutationFn: studentsApi.create,
-    onSuccess: ({ student, tempPassword }) => {
+    onSuccess: ({ student, tempPassword }, variables) => {
       queryClient.invalidateQueries({ queryKey: ['students'] })
       setCreating(false)
+      // Only warn about losing it when the admin did not choose it themselves.
+      const chosen = Boolean((variables as { password?: string }).password?.trim())
       notify(
         'success',
-        `${student.name} added. Login: ${student.email} · Temporary password: ${tempPassword} (shown once — share securely)`,
+        `${student.name} added. Login: ${student.email} · Password: ${tempPassword}` +
+          (chosen ? '' : ' (generated, shown once — copy it now)'),
       )
     },
     onError: (err: unknown) => notify('error', extractError(err)),
@@ -361,6 +365,25 @@ function StudentFormModal({
             error={errors.email?.message}
           />
           <TextField label="RFID UID (optional)" {...register('rfidUID')} />
+
+          {!lockEmail && (
+            <div className="sm:col-span-2">
+              <TextField
+                label="Password (optional)"
+                type="text"
+                autoComplete="new-password"
+                placeholder="Leave blank to generate one automatically"
+                {...register('password', {
+                  minLength: { value: 6, message: 'At least 6 characters' },
+                })}
+              />
+              <p className="mt-1 text-xs text-slate-600">
+                Set one here to hand it to the student directly. Left blank, a random password is
+                generated and shown once after saving — if that is missed, it cannot be recovered
+                and the account needs a reset.
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="flex justify-end gap-3 pt-2">

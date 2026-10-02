@@ -52,7 +52,8 @@ export async function createDriver(
   await assertUniqueLicense(input.licenseNumber)
 
   const ref = db.collection(COLLECTIONS.drivers).doc()
-  const tempPassword = generateTempPassword()
+  // An admin-chosen password is used as-is; otherwise one is generated.
+  const tempPassword = input.password?.trim() || generateTempPassword()
 
   try {
     await createUserWithRole({
