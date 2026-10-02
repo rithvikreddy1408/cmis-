@@ -14,7 +14,8 @@
     "cleanup:demo": "tsx src/scripts/cleanupDemoData.ts",
     "loadtest": "tsx src/scripts/loadTest.ts",
     "backup": "tsx src/scripts/backupFirestore.ts",
-    "restore": "tsx src/scripts/restoreFirestore.ts"
+    "restore": "tsx src/scripts/restoreFirestore.ts",
+    "test:unit": "vitest run tests/unit"
   },
   "keywords": [],
   "author": "",
