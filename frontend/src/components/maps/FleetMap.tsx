@@ -3,6 +3,7 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { decodePolyline } from '../../utils/polyline'
 import { navigateToPointUrl } from '../../utils/navigation'
+import { splitRouteAtBus } from '../../utils/routeProgress'
 
 export interface FleetBus {
   busId: string
@@ -105,6 +106,7 @@ export default function FleetMap({
   const mapRef = useRef<L.Map | null>(null)
   const markersRef = useRef<Map<string, L.Marker>>(new Map())
   const routeLayerRef = useRef<L.LayerGroup | null>(null)
+  const stopsLayerRef = useRef<L.LayerGroup | null>(null)
   // Only auto-fit the first time buses appear; refitting on every GPS ping
   // would yank the map out from under an admin who panned somewhere.
   const hasFitRef = useRef(false)
@@ -144,23 +146,17 @@ export default function FleetMap({
     }
   }, [])
 
-  // The route (path + stops) is static relative to the live bus markers, so
-  // it lives in its own layer and is only rebuilt when the route changes.
+  // Stops are their own layer, rebuilt only when the stops change. They must
+  // not be torn down on a GPS ping: re-adding a marker closes whatever popup
+  // the student had open, so tapping a stop for directions would flicker shut
+  // every few seconds.
   useEffect(() => {
     const map = mapRef.current
     if (!map) return
 
-    routeLayerRef.current?.remove()
+    stopsLayerRef.current?.remove()
     const layer = L.layerGroup().addTo(map)
-    routeLayerRef.current = layer
-
-    const path = encodedPolyline ? decodePolyline(encodedPolyline) : []
-    if (path.length > 1) {
-      L.polyline(
-        path.map((p) => [p.lat, p.lng] as [number, number]),
-        { color: '#0091dc', weight: 4, opacity: 0.85 },
-      ).addTo(layer)
-    }
+    stopsLayerRef.current = layer
 
     for (const stop of stops ?? []) {
       L.marker([stop.lat, stop.lng], { icon: stopIcon(stop) })
@@ -170,19 +166,71 @@ export default function FleetMap({
             `<a class="cmis-pop-nav" href="${navigateToPointUrl(stop)}" target="_blank" rel="noreferrer">Directions to here →</a></div>`,
         )
     }
+  }, [stops])
+
+  // The route line, which does follow the bus: it is split at the bus's
+  // position, so it redraws as the bus moves. Keyed on the coordinates rather
+  // than the buses array so an unchanged position does not cause a redraw.
+  const liveBus = buses.length === 1 ? buses[0] : null
+  const busKey = liveBus ? `${liveBus.lat},${liveBus.lng}` : ''
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+
+    routeLayerRef.current?.remove()
+    const layer = L.layerGroup().addTo(map)
+    routeLayerRef.current = layer
+
+    const path = encodedPolyline ? decodePolyline(encodedPolyline) : []
+    const latLngs = (pts: { lat: number; lng: number }[]) =>
+      pts.map((p) => [p.lat, p.lng] as [number, number])
+
+    if (path.length > 1) {
+      // With a single bus on the route (the student's view) the line is split
+      // at the bus: the stretch still to come is drawn bright green, the part
+      // already covered is faded. The eye lands on where the green begins,
+      // which is the bus — so the student reads its position from the route
+      // itself instead of hunting for a small marker among the streets.
+      if (liveBus) {
+        const { travelled, remaining } = splitRouteAtBus(path, liveBus)
+        if (travelled.length > 1) {
+          L.polyline(latLngs(travelled), {
+            color: '#94a3b8',
+            weight: 4,
+            opacity: 0.55,
+          }).addTo(layer)
+        }
+        if (remaining.length > 1) {
+          // Casing underneath keeps the green readable over any tile colour.
+          L.polyline(latLngs(remaining), {
+            color: '#ffffff',
+            weight: 10,
+            opacity: 0.9,
+          }).addTo(layer)
+          L.polyline(latLngs(remaining), {
+            color: '#16a34a',
+            weight: 6,
+            opacity: 0.95,
+          }).addTo(layer)
+        }
+      } else {
+        L.polyline(latLngs(path), { color: '#0091dc', weight: 4, opacity: 0.85 }).addTo(layer)
+      }
+    }
 
     // Frame the route when there is no live bus to frame instead.
     const framePoints: [number, number][] = [
-      ...path.map((p) => [p.lat, p.lng] as [number, number]),
+      ...latLngs(path),
       ...(stops ?? []).map((s) => [s.lat, s.lng] as [number, number]),
     ]
     if (!hasFitRef.current && buses.length === 0 && framePoints.length > 0) {
       hasFitRef.current = true
       map.fitBounds(L.latLngBounds(framePoints), { padding: [48, 48], maxZoom: 15 })
     }
-    // buses is intentionally excluded: this layer must not rebuild on each ping.
+    // Keyed on busKey, not the buses array, so only real movement redraws.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stops, encodedPolyline])
+  }, [stops, encodedPolyline, busKey])
 
   // Reconcile markers against the current bus list: move the ones that are
   // still reporting, drop the ones that stopped.

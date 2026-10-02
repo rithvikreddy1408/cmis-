@@ -153,7 +153,11 @@ export default function RouteBuilder() {
   }
 
   const saveMutation = useMutation({
-    mutationFn: () => {
+    mutationFn: (override: {
+      polyline?: string
+      distance?: number
+      expectedTime?: number
+    }) => {
       const payload = {
         routeName,
         startPoint,
@@ -161,9 +165,9 @@ export default function RouteBuilder() {
         startLocation,
         destinationLocation,
         stops,
-        distance,
-        expectedTime,
-        polyline,
+        distance: override.distance ?? distance,
+        expectedTime: override.expectedTime ?? expectedTime,
+        polyline: override.polyline ?? polyline,
       }
       return isEditing ? routesApi.update(id!, payload) : routesApi.create(payload)
     },
@@ -171,12 +175,44 @@ export default function RouteBuilder() {
     onError: (err: unknown) => notify('error', extractError(err)),
   })
 
-  function handleSave() {
+  // Previewing is what computes the road geometry, and it was easy to skip —
+  // the route then saved with stops but no line, so students saw loose dots
+  // and no path, and the live progress highlight had nothing to draw along.
+  // Saving now fills it in first when it is missing and the endpoints allow it.
+  async function handleSaveWithRoute() {
     if (!routeName.trim() || !startPoint.trim() || !destination.trim()) {
       notify('error', 'Route name, start point, and destination are required.')
       return
     }
-    saveMutation.mutate()
+    if (!polyline && startLocation && destinationLocation) {
+      setPreviewing(true)
+      try {
+        const waypoints = [...stops]
+          .sort((a, b) => a.order - b.order)
+          .map((s) => ({ lat: s.lat, lng: s.lng }))
+        const result = await mapsApi.directions(
+          `${startLocation.lat},${startLocation.lng}`,
+          `${destinationLocation.lat},${destinationLocation.lng}`,
+          waypoints,
+        )
+        setPolyline(result.polyline)
+        setDistance(result.distanceKm)
+        setExpectedTime(result.durationMin)
+        saveMutation.mutate({
+          polyline: result.polyline,
+          distance: result.distanceKm,
+          expectedTime: result.durationMin,
+        })
+        return
+      } catch {
+        // Routing is a convenience here, not a gate — a route with named stops
+        // is still useful, so a failure saves without the drawn line.
+        notify('error', 'Could not draw the road route; saving without it.')
+      } finally {
+        setPreviewing(false)
+      }
+    }
+    saveMutation.mutate({})
   }
 
   const sortedStops = [...stops].sort((a, b) => a.order - b.order)
@@ -361,8 +397,8 @@ export default function RouteBuilder() {
           )}
 
           <button
-            onClick={handleSave}
-            disabled={saveMutation.isPending}
+            onClick={handleSaveWithRoute}
+            disabled={saveMutation.isPending || previewing}
             className="flex w-full items-center justify-center gap-2 rounded-lg btn-primary py-2.5 text-sm font-medium text-white transition disabled:opacity-60"
           >
             {saveMutation.isPending ? (
