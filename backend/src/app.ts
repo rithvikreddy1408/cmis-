@@ -27,6 +27,17 @@ export function createApp(): Express {
 
   const app = express()
 
+  // Render and Cloud Run both put exactly one reverse proxy in front of the
+  // app, so req.ip is the proxy's address unless Express is told to read
+  // X-Forwarded-For. That matters because the auth rate limiter keys on IP:
+  // untrusted, every login in the whole deployment shares one key and the
+  // 20-per-15-minutes budget locks out all users at once. One hop is also the
+  // narrowest setting that works — trusting every hop would let a client
+  // spoof the header and evade the limit entirely.
+  if (process.env.NODE_ENV === 'production') {
+    app.set('trust proxy', 1)
+  }
+
   app.use(helmet())
   app.use(cors({ origin: corsOrigin }))
   app.use(express.json({ limit: '1mb' }))
